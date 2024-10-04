@@ -13,18 +13,16 @@ scheduler_router = Router()
 
 
 # Функция для отправки сообщения всем пользователям
-async def send_message_to_all_users(bot: Bot, state: FSMContext):
+async def send_message_to_all_users(bot: Bot):
     # Получаем всех пользователей из базы данных
     users = User.objects.all()
 
     for user in users:
         try:
             # Отправляем сообщение каждому пользователю
-            await state.clear()
-            await bot.send_message(chat_id=user.tg_user.telegram_id, text="Пожалуйста выберите корпус учащихся",
+            await bot.send_message(chat_id=user.tg_user.telegram_id, text="",
                                    reply_markup=choose_frame_kb())
 
-            await state.set_state(SchoolerCounter.frame)
         except Exception as e:
             print(f"Не удалось отправить сообщение пользователю {user.tg_user.telegram_id}: {e}")
 
@@ -53,7 +51,7 @@ async def schedule_broadcast_handler(message, state: FSMContext):
     bot = message.bot
 
     # Установите дату и время отправки
-    send_time = datetime(2024, 10, 3, 16, 57)  # Пример времени
+    send_time = datetime(2024, 10, 3, 18, 46)  # Пример времени
 
     # Запускаем планировщик
     await schedule_broadcast(bot, send_time, state)

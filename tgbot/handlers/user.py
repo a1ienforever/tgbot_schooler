@@ -8,6 +8,7 @@ from tgbot.keyboards.inline import choose_frame_kb, choose_class_kb, choose_lett
 
 from Web.AdminPanel.models import TgUser, User
 from tgbot.misc.states import SchoolerCounter
+from tgbot.services.broadcaster import broadcast
 
 user_router = Router()
 
@@ -16,7 +17,6 @@ user_router = Router()
 async def choose_start(message: Message, user: TgUser, state: FSMContext):
     await state.clear()
     await message.answer("Пожалуйста выберите корпус учащихся", reply_markup=choose_frame_kb())
-
     await state.set_state(SchoolerCounter.frame)
 
 
@@ -24,8 +24,6 @@ async def choose_start(message: Message, user: TgUser, state: FSMContext):
 async def choose_frame(call: CallbackQuery, user: TgUser, state: FSMContext):
     frame = call.data.split(':')[1]
     await state.update_data(frame=frame)
-    # await call.message.answer("Пожалуйста выберите класс учащихся", reply_markup=choose_class_kb())
-    # await call.message.edit_reply_markup(reply_markup=choose_class_kb())
     await call.message.edit_text("Пожалуйста выберите класс учащихся", reply_markup=choose_class_kb())
     await state.set_state(SchoolerCounter.class_num)
 
@@ -34,8 +32,6 @@ async def choose_frame(call: CallbackQuery, user: TgUser, state: FSMContext):
 async def choose_class(call: CallbackQuery, user: TgUser, state: FSMContext):
     class_num = call.data.split(':')[1]
     await state.update_data(class_num=class_num)
-    # await call.message.answer("Выберите букву класса.", reply_markup=choose_letter_kb())
-    # await call.message.edit_reply_markup(reply_markup=choose_letter_kb())
     await call.message.edit_text("Выберите букву класса", reply_markup=choose_letter_kb())
 
     await state.set_state(SchoolerCounter.letter)
@@ -45,7 +41,6 @@ async def choose_class(call: CallbackQuery, user: TgUser, state: FSMContext):
 async def choose_letter(call: CallbackQuery, state: FSMContext, user: TgUser):
     class_letter = call.data.split(':')[1]
     await state.update_data(letter=class_letter)
-    # await call.message.answer("Введите количество учеников")
     await call.message.edit_text("Введите количество учеников", reply_markup=None)
 
     await state.set_state(SchoolerCounter.count)
@@ -61,3 +56,4 @@ async def choose_count(message: Message, state: FSMContext, user: TgUser):
     msg = (f"{user1.name} {user1.patronymic}, в {data.get('frame')} корпусе "
            f"{data.get('class_num')}{data.get('letter')} - {data.get('count')} человек")
     await message.answer(msg)
+

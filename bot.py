@@ -8,6 +8,7 @@ from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.fsm.storage.redis import RedisStorage, DefaultKeyBuilder
 
 from tgbot.config import load_config, Config
+from tgbot.handlers.user import choose_start
 
 from tgbot.middlewares.config import ConfigMiddleware
 
@@ -55,6 +56,8 @@ async def main():
     storage = get_storage(config)
     bot = Bot(token=config.tg_bot.token)
     dp = Dispatcher(storage=storage)
+
+
     os.environ['DJANGO_SETTINGS_MODULE'] = 'Web.Web.settings'
     os.environ.update({"DJANGO_ALLOW_ASYNC_UNSAFE": "true"})
 
