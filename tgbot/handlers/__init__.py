@@ -1,11 +1,11 @@
-from .register import register_router
-from .user import user_router
-from .schedule_msg import scheduler_router
+from .register_handler import router as register_router
+from .user_handler import router as user_router
+from .admin_handler import router as admin_router
 
 routers_list = [
     register_router,
     user_router,
-    scheduler_router
+    admin_router,
 ]
 
 

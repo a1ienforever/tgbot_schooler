@@ -3,15 +3,17 @@ from aiogram import Router, F, Bot
 from aiogram.filters import Command
 from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
+
+from tgbot.handlers.admin_handler import create_record, send_admin
 from tgbot.keyboards.inline import *
 
 from Web.AdminPanel.models import TgUser, User, Record, RecordDate, AdminNotification
 from tgbot.misc.states import SchoolerCounter
 
-user_router = Router()
+router = Router()
 
 
-@user_router.message(Command("report"))
+@router.message(Command("report"))
 async def choose_start(message: Message, user: TgUser, state: FSMContext):
     await state.clear()
     await message.answer(
@@ -20,7 +22,7 @@ async def choose_start(message: Message, user: TgUser, state: FSMContext):
     await state.set_state(SchoolerCounter.frame)
 
 
-@user_router.callback_query(F.data.startswith("frame"), SchoolerCounter.frame)
+@router.callback_query(F.data.startswith("frame"), SchoolerCounter.frame)
 async def choose_frame(call: CallbackQuery, user: TgUser, state: FSMContext):
     frame = call.data.split(":")[1]
     await state.update_data(frame=frame)
@@ -35,7 +37,7 @@ async def choose_frame(call: CallbackQuery, user: TgUser, state: FSMContext):
     await state.set_state(SchoolerCounter.class_num)
 
 
-@user_router.callback_query(F.data.startswith("class"), SchoolerCounter.class_num)
+@router.callback_query(F.data.startswith("class"), SchoolerCounter.class_num)
 async def choose_class(call: CallbackQuery, user: TgUser, state: FSMContext):
     class_num = call.data.split(":")[1]
     if class_num == "back":
@@ -84,7 +86,7 @@ async def choose_class(call: CallbackQuery, user: TgUser, state: FSMContext):
     await state.set_state(SchoolerCounter.letter)
 
 
-@user_router.callback_query(F.data.startswith("letter"), SchoolerCounter.letter)
+@router.callback_query(F.data.startswith("letter"), SchoolerCounter.letter)
 async def choose_letter(call: CallbackQuery, state: FSMContext, user: TgUser):
     class_letter = call.data.split(":")[1]
     data = await state.get_data()
@@ -108,7 +110,7 @@ async def choose_letter(call: CallbackQuery, state: FSMContext, user: TgUser):
     await state.set_state(SchoolerCounter.count)
 
 
-@user_router.message(SchoolerCounter.count)
+@router.message(SchoolerCounter.count)
 async def choose_count(message: Message, state: FSMContext, user: TgUser):
     try:
         count = int(message.text)
@@ -133,8 +135,7 @@ async def choose_count(message: Message, state: FSMContext, user: TgUser):
         print(e)
 
 
-
-@user_router.callback_query(F.data.startswith("check"))
+@router.callback_query(F.data.startswith("check"))
 async def check(call: CallbackQuery, state: FSMContext, user: TgUser):
     check_record = call.data.split(":")[1]
     if check_record == "accept":
@@ -158,56 +159,56 @@ async def check(call: CallbackQuery, state: FSMContext, user: TgUser):
         await state.set_state(SchoolerCounter.frame)
 
 
-async def send_admin(bot: Bot):
-
-    today = datetime.date.today()
-
-    records = Record.objects.filter(date__date=today).order_by("frame", "class_num")
-    if not records.exists():
-        return
-
-    message_text = "Записи за сегодня:\n"
-    for record in records:
-        message_text += f"Корпус: {record.frame}, Класс: {record.class_num}{record.letter}, Количество: {record.count}\n"
-
-    for admin in TgUser.objects.filter(is_admin=True):
-        notification = AdminNotification.objects.filter(
-            date=today, admin_id=admin.telegram_id
-        ).first()
-
-        if notification:
-
-            await bot.edit_message_text(
-                chat_id=admin.telegram_id,
-                message_id=notification.message_id,
-                text=message_text,
-            )
-        else:
-
-            sent_message = await bot.send_message(
-                chat_id=admin.telegram_id, text=message_text
-            )
-
-            AdminNotification.objects.create(
-                date=today,
-                admin_id=admin.telegram_id,
-                message_id=sent_message.message_id,
-            )
-
-
-async def create_record(frame, class_num, letter, count, record_date=None):
-
-    if record_date is None:
-        record_date = datetime.date.today()
-
-    record_date_obj, created = await RecordDate.objects.aget_or_create(date=record_date)
-
-    new_record = Record.objects.create(
-        frame=frame,
-        class_num=class_num,
-        letter=letter,
-        count=count,
-        date=record_date_obj,
-    )
-
-    return new_record
+# async def send_admin(bot: Bot):
+#
+#     today = datetime.date.today()
+#
+#     records = Record.objects.filter(date__date=today).order_by("frame", "class_num")
+#     if not records.exists():
+#         return
+#
+#     message_text = "Записи за сегодня:\n"
+#     for record in records:
+#         message_text += f"Корпус: {record.frame}, Класс: {record.class_num}{record.letter}, Количество: {record.count}\n"
+#
+#     for admin in TgUser.objects.filter(is_admin=True):
+#         notification = AdminNotification.objects.filter(
+#             date=today, admin_id=admin.telegram_id
+#         ).first()
+#
+#         if notification:
+#
+#             await bot.edit_message_text(
+#                 chat_id=admin.telegram_id,
+#                 message_id=notification.message_id,
+#                 text=message_text,
+#             )
+#         else:
+#
+#             sent_message = await bot.send_message(
+#                 chat_id=admin.telegram_id, text=message_text
+#             )
+#
+#             AdminNotification.objects.create(
+#                 date=today,
+#                 admin_id=admin.telegram_id,
+#                 message_id=sent_message.message_id,
+#             )
+#
+#
+# async def create_record(frame, class_num, letter, count, record_date=None):
+#
+#     if record_date is None:
+#         record_date = datetime.date.today()
+#
+#     record_date_obj, created = await RecordDate.objects.aget_or_create(date=record_date)
+#
+#     new_record = Record.objects.create(
+#         frame=frame,
+#         class_num=class_num,
+#         letter=letter,
+#         count=count,
+#         date=record_date_obj,
+#     )
+#
+#     return new_record
