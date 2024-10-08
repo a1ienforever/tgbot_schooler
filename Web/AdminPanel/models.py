@@ -40,8 +40,20 @@ class User(models.Model):
 
 
 class Record(models.Model):
-    pass
+    frame = models.IntegerField(verbose_name='корпус')
+    class_num = models.IntegerField(verbose_name='Класс')
+    letter = models.CharField(max_length=10, verbose_name='Буква')
+    count = models.IntegerField(verbose_name='Количество')
+    date = models.ForeignKey('RecordDate', on_delete=models.CASCADE)
 
 
 class RecordDate(models.Model):
     date = models.DateField(auto_now_add=True, verbose_name="Дата создания")
+
+
+class AdminNotification(models.Model):
+    date = models.DateField(auto_now_add=True, verbose_name='Дата отправки')
+    admin_id = models.IntegerField(verbose_name='ID администратора')
+    message_id = models.IntegerField(verbose_name='ID сообщения в Telegram')
+
+

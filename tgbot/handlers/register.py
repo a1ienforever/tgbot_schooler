@@ -84,7 +84,7 @@ async def accept_user(call: CallbackQuery, user: TgUser):
     await call.message.edit_reply_markup(reply_markup=None)
 
 
-@register_router.callback_query(F.data.startswith('accept'))
+@register_router.callback_query(F.data.startswith('nonaccept'))
 async def reject_user(call: CallbackQuery, user: TgUser):
     user_id = call.data.split(':')[1]
     await call.message.bot.send_message(user_id, text='Заявка была отклонена. Обратитесь в поддержку.')

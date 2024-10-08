@@ -8,7 +8,6 @@ from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.fsm.storage.redis import RedisStorage, DefaultKeyBuilder
 
 from tgbot.config import load_config, Config
-from tgbot.handlers.user import choose_start
 
 from tgbot.middlewares.config import ConfigMiddleware
 
