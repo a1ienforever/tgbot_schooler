@@ -20,7 +20,7 @@ async def send_message_to_all_users(bot: Bot):
     for user in users:
         try:
             # Отправляем сообщение каждому пользователю
-            await bot.send_message(chat_id=user.tg_user.telegram_id, text="",
+            await bot.send_message(chat_id=user.tg_user.telegram_id, text="Hello",
                                    reply_markup=choose_frame_kb())
 
         except Exception as e:
@@ -28,32 +28,20 @@ async def send_message_to_all_users(bot: Bot):
 
 
 # Функция для планирования задачи отправки сообщений
-async def schedule_broadcast(bot: Bot, message, send_time: datetime):
-    # Инициализируем планировщик
-    scheduler = AsyncIOScheduler()
+# async def schedule_broadcast(bot: Bot, message, send_time: datetime, state: FSMContext):
+#     # Инициализируем планировщик
+#     scheduler = AsyncIOScheduler()
+#
+#     # Планируем задачу на определённое время
+#     scheduler.add_job(
+#         send_message_to_all_users,
+#         trigger="date",
+#         run_date=send_time,
+#         kwargs={'bot': bot,
+#                 'message': message}
+#     )
+#
+#     # Запускаем планировщик
+#     scheduler.start()
 
-    # Планируем задачу на определённое время
-    scheduler.add_job(
-        send_message_to_all_users,
-        trigger="date",
-        run_date=send_time,
-        kwargs={'bot': bot,
-                'message': message}
-    )
 
-    # Запускаем планировщик
-    scheduler.start()
-
-
-# Хэндлер для запуска планировщика через роутер
-@scheduler_router.message(Command('schedule'))
-async def schedule_broadcast_handler(message, state: FSMContext):
-    bot = message.bot
-
-    # Установите дату и время отправки
-    send_time = datetime(2024, 10, 3, 18, 46)  # Пример времени
-
-    # Запускаем планировщик
-    await schedule_broadcast(bot, send_time, state)
-
-    await message.answer(f"Сообщение будет отправлено в {send_time}.")

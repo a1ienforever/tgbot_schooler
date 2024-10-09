@@ -11,19 +11,19 @@ from tgbot.config import load_config, Config
 
 from tgbot.middlewares.config import ConfigMiddleware
 
-from tgbot.services import broadcaster
-
 
 async def on_startup(bot: Bot, admin_ids: list[int]):
+    from tgbot.services import broadcaster, schedule_message
     await broadcaster.broadcast(bot, admin_ids, "Бот запущен")
+    config = load_config(".env")
+    schedule_message.start_scheduler(bot, get_storage(config))
+
 
 
 def register_global_middlewares(dp: Dispatcher, config: Config):
     from tgbot.middlewares.database import DatabaseMiddleware
-    middleware_types = [
-        ConfigMiddleware(config),
-        DatabaseMiddleware()
-    ]
+
+    middleware_types = [ConfigMiddleware(config), DatabaseMiddleware()]
 
     for middleware_type in middleware_types:
         dp.message.outer_middleware(middleware_type)
@@ -56,12 +56,12 @@ async def main():
     bot = Bot(token=config.tg_bot.token)
     dp = Dispatcher(storage=storage)
 
-
-    os.environ['DJANGO_SETTINGS_MODULE'] = 'Web.Web.settings'
+    os.environ["DJANGO_SETTINGS_MODULE"] = "Web.Web.settings"
     os.environ.update({"DJANGO_ALLOW_ASYNC_UNSAFE": "true"})
 
     django.setup()
     from tgbot.handlers import routers_list
+
     dp.include_routers(*routers_list)
 
     register_global_middlewares(dp, config)
