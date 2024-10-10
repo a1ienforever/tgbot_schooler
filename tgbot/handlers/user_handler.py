@@ -26,7 +26,7 @@ router = Router()
 
 async def choose_start(user_id: int, bot: Bot, state: FSMContext = None):
 
-    if not state:
+    if state:
         current_state = await state.get_state()  # Получаем текущее состояние
 
         # Если необходимо, обрабатываем предыдущее состояние
@@ -34,14 +34,14 @@ async def choose_start(user_id: int, bot: Bot, state: FSMContext = None):
             # Например, можно записать его в логи или обработать
             print(f"Current state before sending new message: {current_state}")
 
+        await state.set_state(SchoolerCounter.frame)
+        print(f"State set to: {SchoolerCounter.frame} for user {user_id}")
+
     await bot.send_message(
         user_id,
         "Пожалуйста выберите корпус учащихся",
         reply_markup=choose_frame_kb(),
     )
-
-    await state.set_state(SchoolerCounter.frame)
-    print(f"State set to: {SchoolerCounter.frame} for user {user_id}")
 
 
 @router.callback_query(F.data.startswith("frame"))
@@ -183,58 +183,3 @@ async def check(call: CallbackQuery, state: FSMContext, user: TgUser):
             "Пожалуйста выберите корпус учащихся", reply_markup=choose_frame_kb()
         )
         await state.set_state(SchoolerCounter.frame)
-
-
-# async def send_admin(bot: Bot):
-#
-#     today = datetime.date.today()
-#
-#     records = Record.objects.filter(date__date=today).order_by("frame", "class_num")
-#     if not records.exists():
-#         return
-#
-#     message_text = "Записи за сегодня:\n"
-#     for record in records:
-#         message_text += f"Корпус: {record.frame}, Класс: {record.class_num}{record.letter}, Количество: {record.count}\n"
-#
-#     for admin in TgUser.objects.filter(is_admin=True):
-#         notification = AdminNotification.objects.filter(
-#             date=today, admin_id=admin.telegram_id
-#         ).first()
-#
-#         if notification:
-#
-#             await bot.edit_message_text(
-#                 chat_id=admin.telegram_id,
-#                 message_id=notification.message_id,
-#                 text=message_text,
-#             )
-#         else:
-#
-#             sent_message = await bot.send_message(
-#                 chat_id=admin.telegram_id, text=message_text
-#             )
-#
-#             AdminNotification.objects.create(
-#                 date=today,
-#                 admin_id=admin.telegram_id,
-#                 message_id=sent_message.message_id,
-#             )
-#
-#
-# async def create_record(frame, class_num, letter, count, record_date=None):
-#
-#     if record_date is None:
-#         record_date = datetime.date.today()
-#
-#     record_date_obj, created = await RecordDate.objects.aget_or_create(date=record_date)
-#
-#     new_record = Record.objects.create(
-#         frame=frame,
-#         class_num=class_num,
-#         letter=letter,
-#         count=count,
-#         date=record_date_obj,
-#     )
-#
-#     return new_record

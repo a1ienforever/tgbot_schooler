@@ -19,13 +19,12 @@ async def schedule_messages(bot: Bot, storage):
     from tgbot.handlers.user_handler import choose_start
 
     for user in users:
-        # state = FSMContext(storage, key=user.tg_user.telegram_id)
-        await choose_start(user.tg_user.telegram_id, bot, state)
+        await choose_start(user.tg_user.telegram_id, bot)
 
 
 def start_scheduler(bot: Bot, storage):
     scheduler.add_job(
-        schedule_messages, "cron", hour=11, minute=28, args=[bot, storage]
+        schedule_messages, "cron", hour=12, minute=35, args=[bot, storage]
     )
     scheduler.add_job(schedule_messages, "cron", hour=9, minute=25, args=[bot, storage])
     scheduler.add_job(
