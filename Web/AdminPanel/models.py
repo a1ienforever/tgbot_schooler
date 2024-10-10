@@ -45,6 +45,7 @@ class Record(models.Model):
     letter = models.CharField(max_length=10, verbose_name='Буква')
     count = models.IntegerField(verbose_name='Количество')
     date = models.ForeignKey('RecordDate', on_delete=models.CASCADE)
+    lesson_num = models.IntegerField(verbose_name='Номер урока')
 
 
 class RecordDate(models.Model):

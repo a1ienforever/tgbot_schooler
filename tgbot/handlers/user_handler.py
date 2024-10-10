@@ -1,8 +1,6 @@
-import datetime
-from asyncio import log
+
 
 from aiogram import Router, F, Bot
-from aiogram.filters import Command, StateFilter
 from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
 
@@ -15,23 +13,12 @@ from tgbot.misc.states import SchoolerCounter
 router = Router()
 
 
-# @router.message(Command("report"))
-# async def choose_start(message: Message, user: TgUser, state: FSMContext):
-#     await state.clear()
-#     await message.answer(
-#         "Пожалуйста выберите корпус учащихся", reply_markup=choose_frame_kb()
-#     )
-#     await state.set_state(SchoolerCounter.frame)
-
-
 async def choose_start(user_id: int, bot: Bot, state: FSMContext = None):
 
     if state:
-        current_state = await state.get_state()  # Получаем текущее состояние
+        current_state = await state.get_state()
 
-        # Если необходимо, обрабатываем предыдущее состояние
         if current_state is not None:
-            # Например, можно записать его в логи или обработать
             print(f"Current state before sending new message: {current_state}")
 
         await state.set_state(SchoolerCounter.frame)

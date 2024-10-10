@@ -2,7 +2,7 @@ import datetime
 
 from aiogram import Router, F, Bot
 
-from aiogram.types import Message, CallbackQuery
+from aiogram.types import CallbackQuery
 from Web.AdminPanel.models import TgUser, User, AdminNotification, RecordDate, Record
 
 router = Router()
@@ -62,7 +62,14 @@ async def send_admin(bot: Bot):
             )
 
 
-async def create_record(frame, class_num, letter, count, record_date=None):
+async def create_record(
+    frame,
+    class_num,
+    letter,
+    count,
+    lesson_num,
+    record_date=None,
+):
 
     if record_date is None:
         record_date = datetime.date.today()
