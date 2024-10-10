@@ -24,13 +24,16 @@ router = Router()
 #     await state.set_state(SchoolerCounter.frame)
 
 
-async def choose_start(user_id: int, bot: Bot, state: FSMContext):
-    current_state = await state.get_state()  # Получаем текущее состояние
+async def choose_start(user_id: int, bot: Bot, state: FSMContext = None):
 
-    # Если необходимо, обрабатываем предыдущее состояние
-    if current_state is not None:
-        # Например, можно записать его в логи или обработать
-        print(f"Current state before sending new message: {current_state}")
+    if not state:
+        current_state = await state.get_state()  # Получаем текущее состояние
+
+        # Если необходимо, обрабатываем предыдущее состояние
+        if current_state is not None:
+            # Например, можно записать его в логи или обработать
+            print(f"Current state before sending new message: {current_state}")
+
     await bot.send_message(
         user_id,
         "Пожалуйста выберите корпус учащихся",
@@ -41,10 +44,11 @@ async def choose_start(user_id: int, bot: Bot, state: FSMContext):
     print(f"State set to: {SchoolerCounter.frame} for user {user_id}")
 
 
-@router.callback_query(F.data.startswith("frame"), StateFilter(SchoolerCounter.frame))
+@router.callback_query(F.data.startswith("frame"))
 async def choose_frame(call: CallbackQuery, user: TgUser, state: FSMContext):
 
     frame = call.data.split(":")[1]
+
     await state.update_data(frame=frame)
     if frame == "1":
         await call.message.edit_text(
@@ -59,6 +63,7 @@ async def choose_frame(call: CallbackQuery, user: TgUser, state: FSMContext):
 
 @router.callback_query(F.data.startswith("class"), SchoolerCounter.class_num)
 async def choose_class(call: CallbackQuery, user: TgUser, state: FSMContext):
+
     class_num = call.data.split(":")[1]
     if class_num == "back":
         await state.set_state(SchoolerCounter.frame)
@@ -68,6 +73,7 @@ async def choose_class(call: CallbackQuery, user: TgUser, state: FSMContext):
         return
     data = await state.get_data()
     frame = data.get("frame")
+
     await state.update_data(class_num=class_num)
     if frame == "1":
         await call.message.edit_text(

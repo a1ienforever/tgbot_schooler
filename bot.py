@@ -8,13 +8,14 @@ from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.fsm.storage.redis import RedisStorage, DefaultKeyBuilder
 
 from tgbot.config import load_config, Config
+from tgbot.middlewares.callback_throttling import CallbackSpamMiddleware
 
 from tgbot.middlewares.config import ConfigMiddleware
 
 
 async def on_startup(bot: Bot, admin_ids: list[int]):
     from tgbot.services import broadcaster, schedule_message
-    await broadcaster.broadcast(bot, admin_ids, "Бот запущен")
+    # await broadcaster.broadcast(bot, admin_ids, "Бот запущен")
     config = load_config(".env")
     schedule_message.start_scheduler(bot, get_storage(config))
 
@@ -28,6 +29,7 @@ def register_global_middlewares(dp: Dispatcher, config: Config):
     for middleware_type in middleware_types:
         dp.message.outer_middleware(middleware_type)
         dp.callback_query.outer_middleware(middleware_type)
+    # dp.callback_query.middleware.register(CallbackSpamMiddleware())
 
 
 def setup_logging():

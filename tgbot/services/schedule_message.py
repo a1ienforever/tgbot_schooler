@@ -16,15 +16,17 @@ scheduler = AsyncIOScheduler()
 # TODO подключить Redis
 async def schedule_messages(bot: Bot, storage):
     users = User.objects.all()
+    from tgbot.handlers.user_handler import choose_start
 
     for user in users:
-        state = FSMContext(storage, key=user.tg_user.telegram_id)
-        from tgbot.handlers.user_handler import choose_start
+        # state = FSMContext(storage, key=user.tg_user.telegram_id)
         await choose_start(user.tg_user.telegram_id, bot, state)
 
 
 def start_scheduler(bot: Bot, storage):
-    scheduler.add_job(schedule_messages, "cron", hour=1, minute=27, args=[bot, storage])
+    scheduler.add_job(
+        schedule_messages, "cron", hour=11, minute=28, args=[bot, storage]
+    )
     scheduler.add_job(schedule_messages, "cron", hour=9, minute=25, args=[bot, storage])
     scheduler.add_job(
         schedule_messages, "cron", hour=10, minute=30, args=[bot, storage]
