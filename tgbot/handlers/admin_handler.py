@@ -25,15 +25,15 @@ async def reject_user(call: CallbackQuery, user: TgUser):
     await call.message.edit_reply_markup(reply_markup=None)
 
 
-async def send_admin(bot: Bot):
+async def send_admin(bot: Bot, lesson_num: int):
 
     today = datetime.date.today()
 
-    records = Record.objects.filter(date__date=today).order_by("frame", "class_num")
+    records = Record.objects.filter(date__date=today, lesson_num=lesson_num).order_by("frame", "class_num")
     if not records.exists():
         return
 
-    message_text = "Записи за сегодня:\n"
+    message_text = f"[{today}] Записи за {lesson_num} урок:\n"
     for record in records:
         message_text += f"Корпус: {record.frame}, Класс: {record.class_num}{record.letter}, Количество: {record.count}\n"
 
@@ -82,6 +82,7 @@ async def create_record(
         letter=letter,
         count=count,
         date=record_date_obj,
+        lesson_num=lesson_num
     )
 
     return new_record

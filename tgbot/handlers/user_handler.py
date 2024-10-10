@@ -1,5 +1,3 @@
-
-
 from aiogram import Router, F, Bot
 from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
@@ -9,11 +7,14 @@ from tgbot.keyboards.inline import *
 
 from Web.AdminPanel.models import TgUser, User
 from tgbot.misc.states import SchoolerCounter
+from tgbot.utils import get_user_data, get_state_data, format_message
 
 router = Router()
 
 
-async def choose_start(user_id: int, bot: Bot, state: FSMContext = None):
+async def choose_start(
+    user_id: int, bot: Bot, lesson_number: int, state: FSMContext = None
+):
 
     if state:
         current_state = await state.get_state()
@@ -23,20 +24,21 @@ async def choose_start(user_id: int, bot: Bot, state: FSMContext = None):
 
         await state.set_state(SchoolerCounter.frame)
         print(f"State set to: {SchoolerCounter.frame} for user {user_id}")
-
     await bot.send_message(
         user_id,
         "Пожалуйста выберите корпус учащихся",
-        reply_markup=choose_frame_kb(),
+        reply_markup=choose_frame_kb(lesson_num=lesson_number),
     )
 
 
 @router.callback_query(F.data.startswith("frame"))
 async def choose_frame(call: CallbackQuery, user: TgUser, state: FSMContext):
-
-    frame = call.data.split(":")[1]
-
-    await state.update_data(frame=frame)
+    data = call.data.split(":")
+    frame = data[1]
+    lesson_num = data[2]
+    print(call.data)
+    print(lesson_num)
+    await state.update_data(frame=frame, lesson_num=lesson_num)
     if frame == "1":
         await call.message.edit_text(
             "Выберите класс учащихся", reply_markup=first_frame_class_kb()
@@ -128,17 +130,18 @@ async def choose_count(message: Message, state: FSMContext, user: TgUser):
     try:
         count = int(message.text)
         await state.update_data(count=count)
-        user1 = User.objects.filter(tg_user__telegram_id=user.telegram_id).get()
-
-        data = await state.get_data()
-        frame = data.get("frame")
-        class_num = data.get("class_num")
-        letter = data.get("letter")
-        count = data.get("count")
-        msg = (
-            f"{user1.name} {user1.patronymic}, проверьте запись: в {frame} корпусе "
-            f"{class_num}{letter} - {count} человек"
+        user1 = await get_user_data(user)
+        state_data = await get_state_data(state)
+        state_info = await state.get_data()
+        msg = await format_message(
+            user1,
+            state_data["frame"],
+            state_data["class_num"],
+            state_data["letter"],
+            state_data["count"],
+            state_info.get("lesson_num"),
         )
+
         await message.answer(msg, reply_markup=accept_record_kb())
 
     except ValueError as e:
@@ -152,17 +155,21 @@ async def choose_count(message: Message, state: FSMContext, user: TgUser):
 async def check(call: CallbackQuery, state: FSMContext, user: TgUser):
     check_record = call.data.split(":")[1]
     if check_record == "accept":
-        user1 = User.objects.filter(tg_user__telegram_id=user.telegram_id).get()
-        data = await state.get_data()
-        frame = data.get("frame")
-        class_num = data.get("class_num")
-        letter = data.get("letter")
-        count = data.get("count")
-        await create_record(frame, class_num, letter, count)
-        await send_admin(call.message.bot)
+        user1 = await get_user_data(user)
+        state_data = await get_state_data(state)
+        state_info = await state.get_data()
+        await create_record(
+            frame=state_data["frame"],
+            class_num=state_data["class_num"],
+            letter=state_data["letter"],
+            count=state_data["count"],
+            lesson_num=state_info.get("lesson_num"),
+
+        )
+        await send_admin(call.message.bot, lesson_num=state_info.get("lesson_num"))
         await call.message.edit_text(
-            f"{user1.name} {user1.patronymic}, сделана запись: в {frame} корпусе "
-            f"{class_num}{letter} - {count} человек"
+            f"{user1.name} {user1.patronymic}, сделана запись: в {state_data['frame']} корпусе "
+            f"{state_data['class_num']}{state_data['letter']} - {state_data['count']} человек"
         )
     elif check_record == "restart":
         await state.clear()

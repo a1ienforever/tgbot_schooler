@@ -12,5 +12,9 @@ class SchoolerCounter(StatesGroup):
     class_num = State()
     letter = State()
     count = State()
+    lesson_number = State()
+
+
+
 
 

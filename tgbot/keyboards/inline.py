@@ -27,11 +27,11 @@ def accept_cb(user_id):
     return keyboard
 
 
-def choose_frame_kb():
+def choose_frame_kb(lesson_num):
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
-            [InlineKeyboardButton(text="1 корпус", callback_data="frame:1")],
-            [InlineKeyboardButton(text="4 корпус", callback_data="frame:4")],
+            [InlineKeyboardButton(text="1 корпус", callback_data=f"frame:1:{lesson_num}")],
+            [InlineKeyboardButton(text="4 корпус", callback_data=f"frame:4:{lesson_num}")],
         ]
     )
     return keyboard
