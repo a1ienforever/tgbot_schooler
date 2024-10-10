@@ -17,22 +17,22 @@ async def schedule_messages(bot: Bot, storage, lesson_number):
 
 def start_scheduler(bot: Bot, storage):
     scheduler.add_job(
-        schedule_messages, "cron", hour=23, minute=44, args=[bot, storage, 1]
+        schedule_messages, "cron", hour=1, minute=1, args=[bot, storage, 1]
     )
     scheduler.add_job(
-        schedule_messages, "cron", hour=23, minute=45, args=[bot, storage, 2]
+        schedule_messages, "cron", hour=0, minute=53, args=[bot, storage, 2]
     )
     scheduler.add_job(
-        schedule_messages, "cron", hour=23, minute=46, args=[bot, storage, 3]
+        schedule_messages, "cron", hour=0, minute=54, args=[bot, storage, 3]
     )  # Запуск каждый день в 12:00
     scheduler.add_job(
-        schedule_messages, "cron", hour=23, minute=47, args=[bot, storage, 4]
+        schedule_messages, "cron", hour=0, minute=9, args=[bot, storage, 4]
     )
     scheduler.add_job(
-        schedule_messages, "cron", hour=23, minute=48, args=[bot, storage, 5]
+        schedule_messages, "cron", hour=0, minute=10, args=[bot, storage, 5]
     )
     scheduler.add_job(
-        schedule_messages, "cron", hour=23, minute=49, args=[bot, storage, 6]
+        schedule_messages, "cron", hour=0, minute=11, args=[bot, storage, 6]
     )
     scheduler.start()
 

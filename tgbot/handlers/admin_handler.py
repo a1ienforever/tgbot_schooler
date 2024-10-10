@@ -34,6 +34,7 @@ async def send_admin(bot: Bot, lesson_num: int):
         return
 
     message_text = f"[{today}] Записи за {lesson_num} урок:\n"
+
     for record in records:
         message_text += f"Корпус: {record.frame}, Класс: {record.class_num}{record.letter}, Количество: {record.count}\n"
 
