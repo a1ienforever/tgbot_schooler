@@ -5,7 +5,7 @@ from aiogram.fsm.context import FSMContext
 from tgbot.handlers.admin_handler import create_record, send_admin
 from tgbot.keyboards.inline import *
 
-from Web.AdminPanel.models import TgUser, User
+from Web.AdminPanel.models import TgUser
 from tgbot.misc.states import SchoolerCounter
 from tgbot.utils import get_user_data, get_state_data, format_message
 
@@ -52,16 +52,16 @@ async def choose_frame(call: CallbackQuery, user: TgUser, state: FSMContext):
 
 @router.callback_query(F.data.startswith("class"), SchoolerCounter.class_num)
 async def choose_class(call: CallbackQuery, user: TgUser, state: FSMContext):
-
+    data = await state.get_data()
+    frame = data.get("frame")
     class_num = call.data.split(":")[1]
+
     if class_num == "back":
         await state.set_state(SchoolerCounter.frame)
         await call.message.edit_text(
-            "Пожалуйста выберите корпус учащихся", reply_markup=choose_frame_kb()
+            "Пожалуйста выберите корпус учащихся", reply_markup=choose_frame_kb(data.get('lesson_num'))
         )
         return
-    data = await state.get_data()
-    frame = data.get("frame")
 
     await state.update_data(class_num=class_num)
     if frame == "1":
@@ -154,26 +154,26 @@ async def choose_count(message: Message, state: FSMContext, user: TgUser):
 @router.callback_query(F.data.startswith("check"))
 async def check(call: CallbackQuery, state: FSMContext, user: TgUser):
     check_record = call.data.split(":")[1]
+    state_info = await state.get_data()
     if check_record == "accept":
         user1 = await get_user_data(user)
         state_data = await get_state_data(state)
-        state_info = await state.get_data()
         await create_record(
             frame=state_data["frame"],
             class_num=state_data["class_num"],
             letter=state_data["letter"],
             count=state_data["count"],
             lesson_num=state_info.get("lesson_num"),
-
         )
-        await send_admin(call.message.bot, lesson_num=state_info.get("lesson_num"))
+        await send_admin(call.message.bot, lesson_num=int(state_info.get("lesson_num")))
         await call.message.edit_text(
-            f"{user1.name} {user1.patronymic}, сделана запись: в {state_data['frame']} корпусе "
+            f"{user1.name} {user1.patronymic}, сделана запись: на {state_info.get('lesson_num')} уроке в {state_data['frame']} корпусе "
             f"{state_data['class_num']}{state_data['letter']} - {state_data['count']} человек"
         )
     elif check_record == "restart":
         await state.clear()
         await call.message.edit_text(
-            "Пожалуйста выберите корпус учащихся", reply_markup=choose_frame_kb()
+            "Пожалуйста выберите корпус учащихся",
+            reply_markup=choose_frame_kb(state_info["lesson_num"]),
         )
         await state.set_state(SchoolerCounter.frame)

@@ -28,28 +28,33 @@ async def reject_user(call: CallbackQuery, user: TgUser):
 async def send_admin(bot: Bot, lesson_num: int):
 
     today = datetime.date.today()
-
-    records = Record.objects.filter(date__date=today, lesson_num=lesson_num).order_by("frame", "class_num")
+    records = Record.objects.filter(date__date=today, lesson_num=lesson_num).order_by(
+        "frame",
+        "class_num",
+    )
     if not records.exists():
         return
 
     message_text = f"[{today}] Записи за {lesson_num} урок:\n"
 
     for record in records:
-        message_text += f"Корпус: {record.frame}, Класс: {record.class_num}{record.letter}, Количество: {record.count}\n"
+        message_text += f"Корпус: {record.frame}, Класс: {record.class_num}{record.letter}, Кол-во: {record.count}\n"
 
     for admin in TgUser.objects.filter(is_admin=True):
         notification = AdminNotification.objects.filter(
-            date=today, admin_id=admin.telegram_id
+            date=today,
+            admin_id=admin.telegram_id,
+            lesson_num=lesson_num
         ).first()
 
-        if notification:
+        if notification and notification.lesson_num == lesson_num:
 
             await bot.edit_message_text(
-                chat_id=admin.telegram_id,
-                message_id=notification.message_id,
-                text=message_text,
-            )
+                    chat_id=admin.telegram_id,
+                    message_id=notification.message_id,
+                    text=message_text,
+                )
+
         else:
 
             sent_message = await bot.send_message(
@@ -60,6 +65,7 @@ async def send_admin(bot: Bot, lesson_num: int):
                 date=today,
                 admin_id=admin.telegram_id,
                 message_id=sent_message.message_id,
+                lesson_num=lesson_num,
             )
 
 
@@ -83,7 +89,7 @@ async def create_record(
         letter=letter,
         count=count,
         date=record_date_obj,
-        lesson_num=lesson_num
+        lesson_num=lesson_num,
     )
 
     return new_record

@@ -56,5 +56,6 @@ class AdminNotification(models.Model):
     date = models.DateField(auto_now_add=True, verbose_name='Дата отправки')
     admin_id = models.IntegerField(verbose_name='ID администратора', default=None)
     message_id = models.IntegerField(verbose_name='ID сообщения в Telegram')
+    lesson_num = models.IntegerField(verbose_name='Номер класса', default=0)
 
 
