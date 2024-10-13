@@ -1,5 +1,7 @@
 import datetime
 
+from asgiref.sync import sync_to_async
+from django.db import transaction
 from aiogram import Router, F, Bot
 
 from aiogram.types import CallbackQuery
@@ -25,48 +27,70 @@ async def reject_user(call: CallbackQuery, user: TgUser):
     await call.message.edit_reply_markup(reply_markup=None)
 
 
+@sync_to_async
+def get_records(today, lesson_num):
+    return Record.objects.filter(date__date=today, lesson_num=lesson_num).order_by(
+        "frame", "class_num"
+    )
+
+
+@sync_to_async
+def get_admins():
+    return TgUser.objects.filter(is_admin=True)
+
+
+@sync_to_async
+def get_notification(today, admin, lesson_num):
+    return AdminNotification.objects.filter(
+        date=today, admin_id=admin.telegram_id, lesson_num=lesson_num
+    ).first()
+
+
+@sync_to_async
+def create_notification(today, admin, sent_message, lesson_num):
+    with transaction.atomic():
+        return AdminNotification.objects.create(
+            date=today,
+            admin_id=admin.telegram_id,
+            message_id=sent_message.message_id,
+            lesson_num=lesson_num,
+        )
+
+
 async def send_admin(bot: Bot, lesson_num: int):
 
     today = datetime.date.today()
-    records = Record.objects.filter(date__date=today, lesson_num=lesson_num).order_by(
-        "frame",
-        "class_num",
-    )
-    if not records.exists():
+
+    records = await get_records(today, lesson_num)
+
+    if not records:
         return
 
     message_text = f"[{today}] Записи за {lesson_num} урок:\n"
-
     for record in records:
         message_text += f"Корпус: {record.frame}, Класс: {record.class_num}{record.letter}, Кол-во: {record.count}\n"
 
-    for admin in TgUser.objects.filter(is_admin=True):
-        notification = AdminNotification.objects.filter(
-            date=today,
-            admin_id=admin.telegram_id,
-            lesson_num=lesson_num
-        ).first()
+    admins = await get_admins()
 
-        if notification and notification.lesson_num == lesson_num:
+    for admin in admins:
+        notification = await get_notification(today, admin, lesson_num)
 
-            await bot.edit_message_text(
+        try:
+            if notification and notification.lesson_num == lesson_num:
+                await bot.edit_message_text(
                     chat_id=admin.telegram_id,
                     message_id=notification.message_id,
                     text=message_text,
                 )
+            else:
+                sent_message = await bot.send_message(
+                    chat_id=admin.telegram_id, text=message_text
+                )
 
-        else:
+                await create_notification(today, admin, sent_message, lesson_num)
 
-            sent_message = await bot.send_message(
-                chat_id=admin.telegram_id, text=message_text
-            )
-
-            AdminNotification.objects.create(
-                date=today,
-                admin_id=admin.telegram_id,
-                message_id=sent_message.message_id,
-                lesson_num=lesson_num,
-            )
+        except Exception as e:
+            print(f"Ошибка при отправке сообщения админу {admin.telegram_id}: {e}")
 
 
 async def create_record(
