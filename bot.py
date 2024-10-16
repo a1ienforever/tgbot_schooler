@@ -8,28 +8,29 @@ from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.fsm.storage.redis import RedisStorage, DefaultKeyBuilder
 
 from tgbot.config import load_config, Config
-from tgbot.middlewares.callback_throttling import CallbackSpamMiddleware
-
 from tgbot.middlewares.config import ConfigMiddleware
+from tgbot.services import broadcaster
 
 
 async def on_startup(bot: Bot, admin_ids: list[int]):
-    from tgbot.services import broadcaster, schedule_message
-    # await broadcaster.broadcast(bot, admin_ids, "Бот запущен")
-    config = load_config(".env")
-    schedule_message.start_scheduler(bot, get_storage(config))
+    from tgbot.services import schedule_message
 
+    await broadcaster.broadcast(bot, admin_ids, "Бот запущен")
+
+    schedule_message.start_scheduler(bot)
 
 
 def register_global_middlewares(dp: Dispatcher, config: Config):
     from tgbot.middlewares.database import DatabaseMiddleware
-
-    middleware_types = [ConfigMiddleware(config), DatabaseMiddleware()]
-
+    from tgbot.middlewares.schedule import WorkDayMiddleware
+    middleware_types = [
+        ConfigMiddleware(config),
+        DatabaseMiddleware(),
+        WorkDayMiddleware(),
+    ]
     for middleware_type in middleware_types:
         dp.message.outer_middleware(middleware_type)
         dp.callback_query.outer_middleware(middleware_type)
-    # dp.callback_query.middleware.register(CallbackSpamMiddleware())
 
 
 def setup_logging():
@@ -43,10 +44,13 @@ def setup_logging():
 
 def get_storage(config):
     if config.tg_bot.use_redis:
-        return RedisStorage.from_url(
+        logging.info("Redis successful connect")
+        redis = RedisStorage.from_url(
             config.redis.dsn(),
             key_builder=DefaultKeyBuilder(with_bot_id=True, with_destiny=True),
         )
+        return redis
+
     else:
         return MemoryStorage()
 
@@ -64,9 +68,9 @@ async def main():
     django.setup()
     from tgbot.handlers import routers_list
 
-    dp.include_routers(*routers_list)
-
     register_global_middlewares(dp, config)
+
+    dp.include_routers(*routers_list)
 
     await on_startup(bot, config.tg_bot.admin_ids)
     await dp.start_polling(bot)

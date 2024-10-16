@@ -1,11 +1,13 @@
 import datetime
 
+from aiogram import Router, F, Bot
+from aiogram.filters import Command
+from aiogram.types import CallbackQuery, Message
 from asgiref.sync import sync_to_async
 from django.db import transaction
-from aiogram import Router, F, Bot
 
-from aiogram.types import CallbackQuery
 from Web.AdminPanel.models import TgUser, User, AdminNotification, RecordDate, Record
+from tgbot.services.schedule_message import pause_scheduler, resume_scheduler
 
 router = Router()
 
@@ -117,3 +119,23 @@ async def create_record(
     )
 
     return new_record
+
+
+async def send_all_admin(bot: Bot ,msg):
+    admins = await get_admins()
+    for admin in admins:
+        await bot.send_message(admin.telegram_id, msg)
+
+
+@router.message(Command("pause"))
+async def pause(message: Message):
+    pause_scheduler()
+    msg = "Отправка сообщений по расписанию приостановлена"
+    await send_all_admin(message.bot, msg)
+
+
+@router.message(Command("resume"))
+async def resume(message: Message):
+    resume_scheduler()
+    msg = "Отправка сообщений по расписанию возобновлена"
+    await send_all_admin(message.bot, msg)

@@ -1,37 +1,35 @@
 from aiogram import Bot
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from Web.AdminPanel.models import User
 
+from Web.AdminPanel.models import User
 
 scheduler = AsyncIOScheduler()
 
 
-# TODO подключить Redis
-async def schedule_messages(bot: Bot, storage, lesson_number):
-    users = User.objects.all()
+async def schedule_messages(bot: Bot, lesson_number: int):
+    users = User.objects.all().filter(tg_user__is_admin=False)
     from tgbot.handlers.user_handler import choose_start
 
     for user in users:
         await choose_start(user.tg_user.telegram_id, bot, lesson_number)
 
 
-def start_scheduler(bot: Bot, storage):
-    scheduler.add_job(
-        schedule_messages, "cron", hour=15, minute=28, args=[bot, storage, 1]
-    )
-    scheduler.add_job(
-        schedule_messages, "cron", hour=15, minute=17, args=[bot, storage, 1]
-    )
-    scheduler.add_job(
-        schedule_messages, "cron", hour=15, minute=19, args=[bot, storage, 2]
-    )  # Запуск каждый день в 12:00
-    scheduler.add_job(
-        schedule_messages, "cron", hour=15, minute=21, args=[bot, storage, 2]
-    )
-    scheduler.add_job(
-        schedule_messages, "cron", hour=14, minute=10, args=[bot, storage, 5]
-    )
-    scheduler.add_job(
-        schedule_messages, "cron", hour=19, minute=31, args=[bot, storage, 6]
-    )
+def start_scheduler(bot: Bot):
+    scheduler.add_job(schedule_messages, "cron", hour=8, minute=30, args=[bot, 1])
+    scheduler.add_job(schedule_messages, "cron", hour=9, minute=25, args=[bot, 2])
+    scheduler.add_job(schedule_messages, "cron", hour=10, minute=35, args=[bot, 3])
+    scheduler.add_job(schedule_messages, "cron", hour=11, minute=30, args=[bot, 4])
+    scheduler.add_job(schedule_messages, "cron", hour=12, minute=30, args=[bot, 5])
+    scheduler.add_job(schedule_messages, "cron", hour=13, minute=35, args=[bot, 6])
+    scheduler.add_job(schedule_messages, "cron", hour=14, minute=30, args=[bot, 7])
+    scheduler.add_job(schedule_messages, "cron", hour=15, minute=48, args=[bot, 8])
+    scheduler.add_job(schedule_messages, "cron", hour=16, minute=20, args=[bot, 9])
     scheduler.start()
+
+
+def pause_scheduler():
+    scheduler.pause()
+
+
+def resume_scheduler():
+    scheduler.resume()

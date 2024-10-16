@@ -1,8 +1,6 @@
-import os
 from dataclasses import dataclass
 from typing import Optional
 
-import django
 from environs import Env
 
 

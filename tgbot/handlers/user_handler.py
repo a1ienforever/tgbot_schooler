@@ -1,4 +1,7 @@
+import logging
+
 from aiogram import Router, F, Bot
+from aiogram.exceptions import AiogramError
 from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
 
@@ -15,20 +18,22 @@ router = Router()
 async def choose_start(
     user_id: int, bot: Bot, lesson_number: int, state: FSMContext = None
 ):
+    try:
+        if state:
+            current_state = await state.get_state()
 
-    if state:
-        current_state = await state.get_state()
+            if current_state is not None:
+                print(f"Current state before sending new message: {current_state}")
 
-        if current_state is not None:
-            print(f"Current state before sending new message: {current_state}")
-
-        await state.set_state(SchoolerCounter.frame)
-        print(f"State set to: {SchoolerCounter.frame} for user {user_id}")
-    await bot.send_message(
-        user_id,
-        "Пожалуйста выберите корпус учащихся",
-        reply_markup=choose_frame_kb(lesson_num=lesson_number),
-    )
+            await state.set_state(SchoolerCounter.frame)
+            print(f"State set to: {SchoolerCounter.frame} for user {user_id}")
+        await bot.send_message(
+            user_id,
+            "Пожалуйста выберите корпус учащихся",
+            reply_markup=choose_frame_kb(lesson_num=lesson_number),
+        )
+    except AiogramError as e:
+        logging.info(f"User: {user_id} - {e}")
 
 
 @router.callback_query(F.data.startswith("frame"))
@@ -125,7 +130,7 @@ async def choose_letter(call: CallbackQuery, state: FSMContext, user: TgUser):
     await state.set_state(SchoolerCounter.count)
 
 
-@router.message(SchoolerCounter.count)
+@router.message(F.text.len() == 2, SchoolerCounter.count)
 async def choose_count(message: Message, state: FSMContext, user: TgUser):
     try:
         count = int(message.text)
@@ -158,6 +163,7 @@ async def check(call: CallbackQuery, state: FSMContext, user: TgUser):
     if check_record == "accept":
         user1 = await get_user_data(user)
         state_data = await get_state_data(state)
+        await state.clear()
         await create_record(
             frame=state_data["frame"],
             class_num=state_data["class_num"],

@@ -13,7 +13,7 @@ router = Router()
 
 @router.message(CommandStart())
 async def user_start(message: Message, user: TgUser):
-    await message.answer('Добро пожаловать в бот ...Зарегистрируйтесь',
+    await message.answer('Пройдите этап регистрации',
                          reply_markup=start_cb())
 
 
@@ -76,17 +76,17 @@ async def save_full_name(message: Message, state: FSMContext, user: TgUser):
         await state.clear()
 
 
-# @router.callback_query(F.data.startswith('accept'))
-# async def accept_user(call: CallbackQuery, user: TgUser):
-#     user_id = call.data.split(':')[1]
-#     User.objects.filter(tg_user__telegram_id=user_id).update(is_accept=True)
-#     await call.message.bot.send_message(user_id, text='Вы успешно зарегистрированы.')
-#     await call.message.edit_reply_markup(reply_markup=None)
-#
-#
-# @router.callback_query(F.data.startswith('nonaccept'))
-# async def reject_user(call: CallbackQuery, user: TgUser):
-#     user_id = call.data.split(':')[1]
-#     await call.message.bot.send_message(user_id, text='Заявка была отклонена. Обратитесь в поддержку.')
-#     await call.message.edit_reply_markup(reply_markup=None)
+@router.callback_query(F.data.startswith('accept'))
+async def accept_user(call: CallbackQuery, user: TgUser):
+    user_id = call.data.split(':')[1]
+    User.objects.filter(tg_user__telegram_id=user_id).update(is_accept=True)
+    await call.message.bot.send_message(user_id, text='Вы успешно зарегистрированы.')
+    await call.message.edit_reply_markup(reply_markup=None)
+
+
+@router.callback_query(F.data.startswith('nonaccept'))
+async def reject_user(call: CallbackQuery, user: TgUser):
+    user_id = call.data.split(':')[1]
+    await call.message.bot.send_message(user_id, text='Заявка была отклонена. Обратитесь в поддержку.')
+    await call.message.edit_reply_markup(reply_markup=None)
 
