@@ -33,19 +33,7 @@ class User(models.Model):
     name = models.CharField(max_length=100, verbose_name="Имя")
     patronymic = models.CharField(max_length=100, verbose_name="Отчество")
     is_accept = models.BooleanField(default=False, verbose_name="Запись принята")
-
-
-class Record(models.Model):
-    frame = models.IntegerField(verbose_name="корпус")
-    class_num = models.IntegerField(verbose_name="Класс")
-    letter = models.CharField(max_length=10, verbose_name="Буква")
-    count = models.IntegerField(verbose_name="Количество")
-    date = models.ForeignKey("RecordDate", on_delete=models.CASCADE)
-    lesson_num = models.IntegerField(verbose_name="Номер урока")
-
-
-class RecordDate(models.Model):
-    date = models.DateField(auto_now_add=True, verbose_name="Дата создания")
+    is_superuser = models.BooleanField(default=False, verbose_name="Директор?")
 
 
 class AdminNotification(models.Model):
@@ -53,3 +41,5 @@ class AdminNotification(models.Model):
     admin_id = models.IntegerField(verbose_name="ID администратора", default=None)
     message_id = models.IntegerField(verbose_name="ID сообщения в Telegram")
     lesson_num = models.IntegerField(verbose_name="Номер класса", default=0)
+
+

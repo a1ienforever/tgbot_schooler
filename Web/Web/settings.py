@@ -32,6 +32,7 @@ config = load_config(".env")
 
 # Application definition
 
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -40,6 +41,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'Web.AdminPanel',
+    "Web.Record",
+     "Web.Schooler",
 ]
 
 MIDDLEWARE = [

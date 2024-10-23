@@ -2,10 +2,12 @@ import logging
 
 from aiogram import Router, F, Bot
 from aiogram.exceptions import AiogramError
+from aiogram.filters import Command
 from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
 
-from tgbot.handlers.admin_handler import create_record, send_admin
+from tgbot.handlers.admin_handler import send_admin
+from tgbot.services.db import create_record
 from tgbot.keyboards.inline import *
 
 from Web.AdminPanel.models import TgUser
@@ -64,7 +66,8 @@ async def choose_class(call: CallbackQuery, user: TgUser, state: FSMContext):
     if class_num == "back":
         await state.set_state(SchoolerCounter.frame)
         await call.message.edit_text(
-            "Пожалуйста выберите корпус учащихся", reply_markup=choose_frame_kb(data.get('lesson_num'))
+            "Пожалуйста выберите корпус учащихся",
+            reply_markup=choose_frame_kb(data.get("lesson_num")),
         )
         return
 
@@ -183,3 +186,10 @@ async def check(call: CallbackQuery, state: FSMContext, user: TgUser):
             reply_markup=choose_frame_kb(state_info["lesson_num"]),
         )
         await state.set_state(SchoolerCounter.frame)
+
+
+@router.message(Command("test"))
+async def test(message: Message):
+    await message.answer(
+        "Выберите участника", reply_markup=generate_inline_keyboard().as_markup()
+    )

@@ -1,4 +1,5 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 
 def start_cb():
@@ -30,8 +31,16 @@ def accept_cb(user_id):
 def choose_frame_kb(lesson_num):
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
-            [InlineKeyboardButton(text="1 корпус", callback_data=f"frame:1:{lesson_num}")],
-            [InlineKeyboardButton(text="4 корпус", callback_data=f"frame:4:{lesson_num}")],
+            [
+                InlineKeyboardButton(
+                    text="1 корпус", callback_data=f"frame:1:{lesson_num}"
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    text="4 корпус", callback_data=f"frame:4:{lesson_num}"
+                )
+            ],
         ]
     )
     return keyboard
@@ -201,12 +210,20 @@ def first_frame_letter_kb():
 def accept_record_kb():
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
-            [
-                InlineKeyboardButton(text='Отправить', callback_data="check:accept")
-            ],
-            [
-                InlineKeyboardButton(text='Заново', callback_data="check:restart")
-            ]
+            [InlineKeyboardButton(text="Отправить", callback_data="check:accept")],
+            [InlineKeyboardButton(text="Заново", callback_data="check:restart")],
         ]
     )
     return keyboard
+
+
+def generate_inline_keyboard():
+    # Создаем пустую клавиатуру
+    builder = InlineKeyboardBuilder()
+
+    for index in range(1, 30):
+        builder.button(text=f"Артём Задворный", callback_data=f"set:{index}")
+
+    builder.adjust(2)
+
+    return builder

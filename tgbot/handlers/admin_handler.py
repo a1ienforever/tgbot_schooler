@@ -1,13 +1,22 @@
+import csv
 import datetime
 
+from tqdm import tqdm
 from aiogram import Router, F, Bot
 from aiogram.filters import Command
 from aiogram.types import CallbackQuery, Message
-from asgiref.sync import sync_to_async
-from django.db import transaction
 
-from Web.AdminPanel.models import TgUser, User, AdminNotification, RecordDate, Record
+from Web.AdminPanel.models import TgUser, User
+from tgbot.services.db import (
+    add_person,
+    clear_database,
+    create_notification,
+    get_notification,
+    get_records,
+    get_admins,
+)
 from tgbot.services.schedule_message import pause_scheduler, resume_scheduler
+from tgbot.utils import split_full_name
 
 router = Router()
 
@@ -27,36 +36,6 @@ async def reject_user(call: CallbackQuery, user: TgUser):
         user_id, text="Заявка была отклонена. Обратитесь в поддержку."
     )
     await call.message.edit_reply_markup(reply_markup=None)
-
-
-@sync_to_async
-def get_records(today, lesson_num):
-    return Record.objects.filter(date__date=today, lesson_num=lesson_num).order_by(
-        "frame", "class_num"
-    )
-
-
-@sync_to_async
-def get_admins():
-    return TgUser.objects.filter(is_admin=True)
-
-
-@sync_to_async
-def get_notification(today, admin, lesson_num):
-    return AdminNotification.objects.filter(
-        date=today, admin_id=admin.telegram_id, lesson_num=lesson_num
-    ).first()
-
-
-@sync_to_async
-def create_notification(today, admin, sent_message, lesson_num):
-    with transaction.atomic():
-        return AdminNotification.objects.create(
-            date=today,
-            admin_id=admin.telegram_id,
-            message_id=sent_message.message_id,
-            lesson_num=lesson_num,
-        )
 
 
 async def send_admin(bot: Bot, lesson_num: int):
@@ -95,33 +74,7 @@ async def send_admin(bot: Bot, lesson_num: int):
             print(f"Ошибка при отправке сообщения админу {admin.telegram_id}: {e}")
 
 
-async def create_record(
-    frame,
-    class_num,
-    letter,
-    count,
-    lesson_num,
-    record_date=None,
-):
-
-    if record_date is None:
-        record_date = datetime.date.today()
-
-    record_date_obj, created = await RecordDate.objects.aget_or_create(date=record_date)
-
-    new_record = Record.objects.create(
-        frame=frame,
-        class_num=class_num,
-        letter=letter,
-        count=count,
-        date=record_date_obj,
-        lesson_num=lesson_num,
-    )
-
-    return new_record
-
-
-async def send_all_admin(bot: Bot ,msg):
+async def send_all_admin(bot: Bot, msg):
     admins = await get_admins()
     for admin in admins:
         await bot.send_message(admin.telegram_id, msg)
@@ -139,3 +92,39 @@ async def resume(message: Message):
     resume_scheduler()
     msg = "Отправка сообщений по расписанию возобновлена"
     await send_all_admin(message.bot, msg)
+
+
+@router.message(Command("test"))
+async def test(message: Message):
+    filename = "C:\\Users\\artyo\\Documents\\ученики.csv"
+    clear_database()
+    with open(filename, newline="", encoding="utf-8") as csvfile:
+        reader = csv.reader(csvfile)
+        total_rows = sum(1 for row in reader)
+
+    with open(filename, newline="", encoding="utf-8") as csvfile:
+        reader = csv.reader(csvfile)
+
+        with tqdm(total=total_rows, desc="Импорт записей", unit=" записей") as pbar:
+            for row in reader:
+                # Разбираем данные из CSV
+                full_name = row[0]
+                class_num = row[1]
+                letter = row[2]
+                building = row[3]
+
+                last_name, first_name, middle_name = split_full_name(full_name)
+
+                # Добавляем данные в БД
+                await add_person(
+                    first_name=first_name,
+                    last_name=last_name,
+                    class_num=class_num,
+                    letter=letter,
+                    building=building,
+                    middle_name=middle_name,
+                )
+
+                pbar.update(1)
+
+    await message.answer(f"Импорт завершён. Всего записей: {total_rows}")

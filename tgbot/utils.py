@@ -3,6 +3,7 @@ import re
 from aiogram.fsm.context import FSMContext
 
 from Web.AdminPanel.models import TgUser, User
+from Web.Schooler.models import Person, ClassNum, Building
 
 
 def get_name(input_str: str):
@@ -44,3 +45,18 @@ async def format_message(user, frame, class_num, letter, count, lesson_num):
         f"{user.name} {user.patronymic}, проверьте запись: на {lesson_num} уроке в {frame} корпусе "
         f"{class_num}{letter} - {count} человек"
     )
+
+
+def split_full_name(full_name):
+    parts = full_name.split()
+
+    # Фамилия всегда будет первой
+    last_name = parts[0]
+
+    # Имя всегда второй частью
+    first_name = parts[1]
+
+    # Проверяем, есть ли отчество
+    middle_name = " ".join(parts[2:]) if len(parts) > 2 else None
+
+    return last_name, first_name, middle_name
