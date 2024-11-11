@@ -1,22 +1,23 @@
 import csv
 import datetime
 
-from tqdm import tqdm
 from aiogram import Router, F, Bot
 from aiogram.filters import Command
 from aiogram.types import CallbackQuery, Message
+from tqdm import tqdm
 
 from Web.AdminPanel.models import TgUser, User
+from tgbot.decorators.access_rights import is_superuser
 from tgbot.services.db import (
     add_person,
-    clear_database,
+    clear_database_schooler,
     create_notification,
     get_notification,
     get_records,
     get_admins,
 )
 from tgbot.services.schedule_message import pause_scheduler, resume_scheduler
-from tgbot.utils import split_full_name
+from tgbot.utils import split_full_name, get_incidents_message
 
 router = Router()
 
@@ -81,23 +82,26 @@ async def send_all_admin(bot: Bot, msg):
 
 
 @router.message(Command("pause"))
-async def pause(message: Message):
+@is_superuser
+async def pause(message: Message, user: TgUser):
     pause_scheduler()
     msg = "Отправка сообщений по расписанию приостановлена"
     await send_all_admin(message.bot, msg)
 
 
 @router.message(Command("resume"))
-async def resume(message: Message):
+@is_superuser
+async def resume(message: Message, user: TgUser):
     resume_scheduler()
     msg = "Отправка сообщений по расписанию возобновлена"
     await send_all_admin(message.bot, msg)
 
 
 @router.message(Command("test"))
-async def test(message: Message):
+@is_superuser
+async def test(message: Message, user: TgUser):
     filename = "C:\\Users\\artyo\\Documents\\ученики.csv"
-    clear_database()
+    clear_database_schooler()
     with open(filename, newline="", encoding="utf-8") as csvfile:
         reader = csv.reader(csvfile)
         total_rows = sum(1 for row in reader)
@@ -128,3 +132,11 @@ async def test(message: Message):
                 pbar.update(1)
 
     await message.answer(f"Импорт завершён. Всего записей: {total_rows}")
+
+
+@router.message(Command("incidents"))
+@is_superuser
+async def incident_report(message: Message, user: TgUser):
+    text, text1 = await get_incidents_message()
+    await message.answer(text)
+    await message.answer(text1)

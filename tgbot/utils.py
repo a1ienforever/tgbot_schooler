@@ -3,7 +3,7 @@ import re
 from aiogram.fsm.context import FSMContext
 
 from Web.AdminPanel.models import TgUser, User
-from Web.Schooler.models import Person, ClassNum, Building
+from tgbot.services.db import get_incidents
 
 
 def get_name(input_str: str):
@@ -37,6 +37,7 @@ async def get_state_data(state: FSMContext):
         "letter": data.get("letter"),
         "count": data.get("count"),
         "lesson_num": data.get("lesson_number"),
+        "message_type": data.get("message_type"),
     }
 
 
@@ -60,3 +61,29 @@ def split_full_name(full_name):
     middle_name = " ".join(parts[2:]) if len(parts) > 2 else None
 
     return last_name, first_name, middle_name
+
+
+async def get_incidents_message():
+    lates, uniforms = await get_incidents()
+
+    late = "Отчет за последние 7 дней\n" "Опоздавшие:\n"
+
+    for person in lates:
+
+        text = (
+            f"{person.person_id.last_name} "
+            f"{person.person_id.first_name} "
+            f"{person.person_id.class_assigned.__str__()}\n"
+        )
+        late += text
+
+    uniform = "Без формы:\n"
+    for person in uniforms:
+        text = (
+            f"{person.person_id.last_name} "
+            f"{person.person_id.first_name} "
+            f"{person.person_id.class_assigned.__str__()}\n"
+        )
+        uniform += text
+
+    return late, uniform

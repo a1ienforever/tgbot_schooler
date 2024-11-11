@@ -2,9 +2,10 @@ import datetime
 
 from asgiref.sync import sync_to_async
 from django.db import transaction
+from django.utils import timezone
 
 from Web.AdminPanel.models import AdminNotification, TgUser
-from Web.Record.models import RecordDate, Record
+from Web.Record.models import RecordDate, Record, IncidentRecord
 from Web.Schooler.models import ClassNum, Person, Building
 
 
@@ -28,7 +29,7 @@ async def add_person(
     )
 
 
-def clear_database():
+def clear_database_schooler():
     # Удаление данных всех моделей
     Person.objects.all().delete()
     ClassNum.objects.all().delete()
@@ -84,6 +85,23 @@ def get_records(today, lesson_num):
     return Record.objects.filter(date__date=today, lesson_num=lesson_num).order_by(
         "frame", "class_num"
     )
+
+
+@sync_to_async
+def get_incidents():
+    now = timezone.now()
+    week_ago = now - datetime.timedelta(days=7)
+    recent_records_late = IncidentRecord.objects.filter(
+        date__gte=week_ago, status=IncidentRecord.LATE
+    ).order_by(
+        "date", "person_id__class_assigned__building", "person_id__class_assigned"
+    )
+    recent_records_uniform = IncidentRecord.objects.filter(
+        date__gte=week_ago, status=IncidentRecord.WITHOUT_UNIFORM
+    ).order_by(
+        "date", "person_id__class_assigned__building", "person_id__class_assigned"
+    )
+    return recent_records_late, recent_records_uniform
 
 
 @sync_to_async

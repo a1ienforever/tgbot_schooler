@@ -2,16 +2,14 @@ import logging
 
 from aiogram import Router, F, Bot
 from aiogram.exceptions import AiogramError
-from aiogram.filters import Command
-from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
-
-from tgbot.handlers.admin_handler import send_admin
-from tgbot.services.db import create_record
-from tgbot.keyboards.inline import *
+from aiogram.types import Message, CallbackQuery
 
 from Web.AdminPanel.models import TgUser
+from tgbot.handlers.admin_handler import send_admin
+from tgbot.keyboards.inline import *
 from tgbot.misc.states import SchoolerCounter
+from tgbot.services.db import create_record
 from tgbot.utils import get_user_data, get_state_data, format_message
 
 router = Router()
@@ -23,7 +21,7 @@ async def choose_start(
     try:
         if state:
             current_state = await state.get_state()
-
+            await state.update_data(message_type="counter")
             if current_state is not None:
                 print(f"Current state before sending new message: {current_state}")
 
@@ -43,8 +41,7 @@ async def choose_frame(call: CallbackQuery, user: TgUser, state: FSMContext):
     data = call.data.split(":")
     frame = data[1]
     lesson_num = data[2]
-    print(call.data)
-    print(lesson_num)
+
     await state.update_data(frame=frame, lesson_num=lesson_num)
     if frame == "1":
         await call.message.edit_text(
@@ -128,9 +125,16 @@ async def choose_letter(call: CallbackQuery, state: FSMContext, user: TgUser):
         return
 
     await state.update_data(letter=class_letter)
-    await call.message.edit_text("Введите количество учеников", reply_markup=None)
-
-    await state.set_state(SchoolerCounter.count)
+    data = await state.get_data()
+    if data.get("message_type") == "counter":
+        await call.message.edit_text("Введите количество учеников", reply_markup=None)
+        await state.set_state(SchoolerCounter.count)
+    else:
+        await call.message.edit_text(
+            "Выберите имя ученика",
+            reply_markup=generate_inline_keyboard(data).as_markup(),
+        )
+        await state.set_state(SchoolerCounter.name)
 
 
 @router.message(F.text.len() == 2, SchoolerCounter.count)
@@ -149,7 +153,7 @@ async def choose_count(message: Message, state: FSMContext, user: TgUser):
             state_data["count"],
             state_info.get("lesson_num"),
         )
-
+        print(state_data["message_type"])
         await message.answer(msg, reply_markup=accept_record_kb())
 
     except ValueError as e:
@@ -186,10 +190,3 @@ async def check(call: CallbackQuery, state: FSMContext, user: TgUser):
             reply_markup=choose_frame_kb(state_info["lesson_num"]),
         )
         await state.set_state(SchoolerCounter.frame)
-
-
-@router.message(Command("test"))
-async def test(message: Message):
-    await message.answer(
-        "Выберите участника", reply_markup=generate_inline_keyboard().as_markup()
-    )

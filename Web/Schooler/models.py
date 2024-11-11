@@ -5,7 +5,7 @@ class Building(models.Model):
     number = models.IntegerField()
 
     def __str__(self):
-        return f"Корпус {self.number}"
+        return f"{self.number}к"
 
 
 class ClassNum(models.Model):

@@ -1,6 +1,8 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
+from Web.Schooler.models import Person
+
 
 def start_cb():
     keyboard = InlineKeyboardMarkup(
@@ -217,12 +219,32 @@ def accept_record_kb():
     return keyboard
 
 
-def generate_inline_keyboard():
-    # Создаем пустую клавиатуру
+def accept_kb():
+    keyboard = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text="Отправить", callback_data=f"send")],
+            [InlineKeyboardButton(text="Заново", callback_data="repeat")],
+        ]
+    )
+    return keyboard
+
+
+def generate_inline_keyboard(state: dict):
     builder = InlineKeyboardBuilder()
 
-    for index in range(1, 30):
-        builder.button(text=f"Артём Задворный", callback_data=f"set:{index}")
+    persons = (
+        Person.objects.select_related("class_assigned__building")
+        .filter(
+            class_assigned__grade=state["class_num"],
+            class_assigned__letter=state["letter"],
+            class_assigned__building__number=state["frame"],
+        )
+        .order_by("last_name")
+    )
+
+    for person in persons:
+        name = f"{person.last_name} {person.first_name}"
+        builder.button(text=name, callback_data=f"person:{person.id}")
 
     builder.adjust(2)
 

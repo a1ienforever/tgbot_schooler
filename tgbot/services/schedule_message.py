@@ -1,7 +1,10 @@
 from aiogram import Bot
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.triggers.cron import CronTrigger
 
 from Web.AdminPanel.models import User
+from tgbot.services.db import get_admins
+from tgbot.utils import get_incidents_message
 
 scheduler = AsyncIOScheduler()
 
@@ -14,6 +17,12 @@ async def schedule_messages(bot: Bot, lesson_number: int):
         await choose_start(user.tg_user.telegram_id, bot, lesson_number)
 
 
+async def send_all_admin(bot: Bot, msg):
+    admins = await get_admins()
+    for admin in admins:
+        await bot.send_message(admin.telegram_id, msg)
+
+
 def start_scheduler(bot: Bot):
     scheduler.add_job(schedule_messages, "cron", hour=8, minute=30, args=[bot, 1])
     scheduler.add_job(schedule_messages, "cron", hour=9, minute=25, args=[bot, 2])
@@ -24,6 +33,12 @@ def start_scheduler(bot: Bot):
     scheduler.add_job(schedule_messages, "cron", hour=14, minute=30, args=[bot, 7])
     scheduler.add_job(schedule_messages, "cron", hour=15, minute=48, args=[bot, 8])
     scheduler.add_job(schedule_messages, "cron", hour=16, minute=20, args=[bot, 9])
+    scheduler.add_job(
+        send_all_admin,
+        CronTrigger(day_of_week="fri", hour=10, minute=0),
+        args=[bot, get_incidents_message()],
+    )
+
     scheduler.start()
 
 
