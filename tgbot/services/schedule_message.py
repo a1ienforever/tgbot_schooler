@@ -18,7 +18,7 @@ async def schedule_messages(bot: Bot, lesson_number: int):
 
 
 async def send_all_admin(bot: Bot, msg):
-    admins = await get_admins()
+    admins = await User.objects.filter(is_superuser=True, tg_user__is_admin=True)
     for admin in admins:
         await bot.send_message(admin.telegram_id, msg)
 

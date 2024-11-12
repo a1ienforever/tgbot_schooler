@@ -3,7 +3,7 @@ from typing import Callable, Dict, Any, Awaitable
 from aiogram import BaseMiddleware
 from aiogram.types import Message
 
-from Web.AdminPanel.models import TgUser, User
+from Web.AdminPanel.models import TgUser
 
 
 class DatabaseMiddleware(BaseMiddleware):
@@ -11,10 +11,10 @@ class DatabaseMiddleware(BaseMiddleware):
         pass
 
     async def __call__(
-            self,
-            handler: Callable[[Message, Dict[str, Any]], Awaitable[Any]],
-            event: Message,
-            data: Dict[str, Any],
+        self,
+        handler: Callable[[Message, Dict[str, Any]], Awaitable[Any]],
+        event: Message,
+        data: Dict[str, Any],
     ) -> Any:
         user, _ = await TgUser.objects.aget_or_create(
             telegram_id=event.from_user.id,

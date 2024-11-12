@@ -1,27 +1,21 @@
-from functools import wraps
 from aiogram import types
-from aiogram.types import Message
+from functools import wraps
 
-from Web.AdminPanel.models import TgUser
-
-
-def is_superuser(func):
-    @wraps(func)
-    async def wrapper(message: Message, user: TgUser, *args, **kwargs):
-        if not user.user.is_superuser:
-            await message.answer("Вы не можете воспользоваться данной команды")
-            return
-        return await func(message, *args, **kwargs)
-
-    return wrapper
+from Web.AdminPanel.models import User, TgUser
 
 
-def is_admin(func):
-    @wraps(func)
-    async def wrapper(message: Message, user: TgUser, *args, **kwargs):
-        if not user.is_admin:
-            await message.answer("Вы не можете воспользоваться данной команды")
-            return
-        return await func(message, *args, **kwargs)
+def role_required(allowed_roles):
+    def decorator(func):
+        @wraps(func)
+        async def wrapper(message: types.Message, user: TgUser, *args, **kwargs):
 
-    return wrapper
+            if not user or user.user.role not in allowed_roles:
+                await message.answer(
+                    "У вас недостаточно прав для выполнения этой команды."
+                )
+                return
+            return await func(message, user, *args, **kwargs)
+
+        return wrapper
+
+    return decorator

@@ -7,7 +7,7 @@ from aiogram.types import CallbackQuery, Message
 from tqdm import tqdm
 
 from Web.AdminPanel.models import TgUser, User
-from tgbot.decorators.access_rights import is_superuser
+from tgbot.decorators.access_rights import role_required
 from tgbot.services.db import (
     add_person,
     clear_database_schooler,
@@ -22,21 +22,26 @@ from tgbot.utils import split_full_name, get_incidents_message
 router = Router()
 
 
-@router.callback_query(F.data.startswith("accept"))
+@router.callback_query(
+    F.data.startswith("director")
+    | F.data.startswith("deputy")
+    | F.data.startswith("teacher")
+    | F.data.startswith("reject")
+)
 async def accept_user(call: CallbackQuery, user: TgUser):
-    user_id = call.data.split(":")[1]
-    User.objects.filter(tg_user__telegram_id=user_id).update(is_accept=True)
-    await call.message.bot.send_message(user_id, text="Вы успешно зарегистрированы.")
-    await call.message.edit_reply_markup(reply_markup=None)
-
-
-@router.callback_query(F.data.startswith("nonaccept"))
-async def reject_user(call: CallbackQuery, user: TgUser):
-    user_id = call.data.split(":")[1]
-    await call.message.bot.send_message(
-        user_id, text="Заявка была отклонена. Обратитесь в поддержку."
-    )
-    await call.message.edit_reply_markup(reply_markup=None)
+    role, user_id = call.data.split(":")
+    User.objects.filter(tg_user__telegram_id=user_id).update(role=role)
+    if role != "reject":
+        await call.message.bot.send_message(
+            user_id, text="Вы успешно зарегистрированы."
+        )
+        await call.message.edit_reply_markup(reply_markup=None)
+    else:
+        await call.message.bot.send_message(
+            user_id, text="Заявка была отклонена. Обратитесь в поддержку."
+        )
+        await call.message.edit_reply_markup(reply_markup=None)
+        User.objects.filter(tg_user__telegram_id=user_id).delete()
 
 
 async def send_admin(bot: Bot, lesson_num: int):
@@ -82,36 +87,39 @@ async def send_all_admin(bot: Bot, msg):
 
 
 @router.message(Command("pause"))
-@is_superuser
+@role_required(["director"])
 async def pause(message: Message, user: TgUser):
     pause_scheduler()
     msg = "Отправка сообщений по расписанию приостановлена"
-    await send_all_admin(message.bot, msg)
+    users = User.objects.filter(role="director")
+    for user in users:
+        await message.bot.send_message(user.tg_user.telegram_id, msg)
 
 
 @router.message(Command("resume"))
-@is_superuser
+@role_required(["director"])
 async def resume(message: Message, user: TgUser):
     resume_scheduler()
     msg = "Отправка сообщений по расписанию возобновлена"
-    await send_all_admin(message.bot, msg)
+    users = User.objects.filter(role="director")
+    for user in users:
+        await message.bot.send_message(user.tg_user.telegram_id, msg)
 
 
 @router.message(Command("test"))
-@is_superuser
+@role_required(["director"])
 async def test(message: Message, user: TgUser):
     filename = "C:\\Users\\artyo\\Documents\\ученики.csv"
     clear_database_schooler()
     with open(filename, newline="", encoding="utf-8") as csvfile:
         reader = csv.reader(csvfile)
-        total_rows = sum(1 for row in reader)
+        total_rows = sum(1 for _ in reader)
 
     with open(filename, newline="", encoding="utf-8") as csvfile:
         reader = csv.reader(csvfile)
 
         with tqdm(total=total_rows, desc="Импорт записей", unit=" записей") as pbar:
             for row in reader:
-                # Разбираем данные из CSV
                 full_name = row[0]
                 class_num = row[1]
                 letter = row[2]
@@ -135,8 +143,9 @@ async def test(message: Message, user: TgUser):
 
 
 @router.message(Command("incidents"))
-@is_superuser
+@role_required(["director", "deputy"])
 async def incident_report(message: Message, user: TgUser):
     text, text1 = await get_incidents_message()
+
     await message.answer(text)
     await message.answer(text1)

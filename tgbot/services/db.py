@@ -94,7 +94,10 @@ def get_incidents():
     recent_records_late = IncidentRecord.objects.filter(
         date__gte=week_ago, status=IncidentRecord.LATE
     ).order_by(
-        "date", "person_id__class_assigned__building", "person_id__class_assigned"
+        "date",
+        "person_id__last_name",
+        "person_id__class_assigned__building",
+        "person_id__class_assigned",
     )
     recent_records_uniform = IncidentRecord.objects.filter(
         date__gte=week_ago, status=IncidentRecord.WITHOUT_UNIFORM

@@ -23,8 +23,14 @@ def cancel_cb():
 def accept_cb(user_id):
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
-            [InlineKeyboardButton(text="Accept", callback_data=f"accept:{user_id}")],
-            [InlineKeyboardButton(text="reject", callback_data=f"reject:{user_id}")],
+            [
+                InlineKeyboardButton(
+                    text="Директор", callback_data=f"director:{user_id}"
+                )
+            ],
+            [InlineKeyboardButton(text="Завуч", callback_data=f"deputy:{user_id}")],
+            [InlineKeyboardButton(text="Учитель", callback_data=f"teacher:{user_id}")],
+            [InlineKeyboardButton(text="Отклонить", callback_data=f"reject:{user_id}")],
         ]
     )
     return keyboard
@@ -245,6 +251,7 @@ def generate_inline_keyboard(state: dict):
     for person in persons:
         name = f"{person.last_name} {person.first_name}"
         builder.button(text=name, callback_data=f"person:{person.id}")
+    builder.button(text="Назад", callback_data="person:back")
 
     builder.adjust(2)
 

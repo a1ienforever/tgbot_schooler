@@ -9,8 +9,12 @@ from aiogram.types import Message, CallbackQuery
 from Web.AdminPanel.models import TgUser
 from Web.Record.models import IncidentRecord
 from Web.Schooler.models import Person
-from tgbot.decorators.access_rights import is_admin
-from tgbot.keyboards.inline import choose_frame_kb
+from tgbot.decorators.access_rights import role_required
+from tgbot.keyboards.inline import (
+    choose_frame_kb,
+    second_frame_class_kb,
+    first_frame_class_kb,
+)
 from tgbot.keyboards.reply import menu_kb
 from tgbot.misc.states import SchoolerCounter
 
@@ -18,18 +22,18 @@ router = Router()
 
 
 @router.message(Command("report"))
-@is_admin
+@role_required(["director", "deputy"])
 async def start_report(message: Message, user: TgUser):
-    print("Message sended")
     await message.answer(
         "Выберите нужный вид отчета в клавиатуре снизу", reply_markup=menu_kb()
     )
 
 
 @router.message(F.text.upper().in_({"ОПОЗДАВШИЙ", "БЕЗ ФОРМЫ"}))
+@role_required(["director", "deputy"])
 async def choose_start_incident(
     message: Message,
-    bot: Bot,
+    user: TgUser,
     lesson_number: int = 1,
     state: FSMContext = None,
 ):
@@ -52,7 +56,17 @@ async def choose_start_incident(
 async def late_record(call: CallbackQuery, state: FSMContext, user: TgUser):
     person_id = call.data.split(":")[1]
     data = await state.get_data()
-
+    if person_id == "back":
+        await state.set_state(SchoolerCounter.class_num)
+        if data["frame"] == "4":
+            await call.message.edit_text(
+                "Выберите класс учащихся", reply_markup=second_frame_class_kb()
+            )
+        if data["frame"] == "1":
+            await call.message.edit_text(
+                "Выберите класс учащихся", reply_markup=first_frame_class_kb()
+            )
+        return
     person = Person.objects.filter(id=person_id).get()
     text = f"{person.last_name} {person.first_name} {person.class_assigned.grade}{person.class_assigned.letter}"
     if data["message_type"] == "later":

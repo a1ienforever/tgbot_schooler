@@ -28,12 +28,17 @@ class TgUser(CreatedModel):
 
 
 class User(models.Model):
+    ROLE_CHOICES = [
+        ("director", "Директор"),
+        ("deputy", "Завуч"),
+        ("teacher", "Учитель"),
+    ]
     tg_user = models.OneToOneField(to="TgUser", on_delete=models.CASCADE)
     surname = models.CharField(max_length=100, verbose_name="Фамилия")
     name = models.CharField(max_length=100, verbose_name="Имя")
     patronymic = models.CharField(max_length=100, verbose_name="Отчество")
-    is_accept = models.BooleanField(default=False, verbose_name="Запись принята")
     is_superuser = models.BooleanField(default=False, verbose_name="Директор?")
+    role = models.CharField(max_length=10, choices=ROLE_CHOICES, null=True)
 
 
 class AdminNotification(models.Model):
@@ -41,5 +46,3 @@ class AdminNotification(models.Model):
     admin_id = models.IntegerField(verbose_name="ID администратора", default=None)
     message_id = models.IntegerField(verbose_name="ID сообщения в Telegram")
     lesson_num = models.IntegerField(verbose_name="Номер класса", default=0)
-
-
