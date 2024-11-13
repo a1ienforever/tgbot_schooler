@@ -5,6 +5,10 @@ services:
     image: postgres:17
     env_file:
       - ./.env
+    environment:
+      POSTGRES_DB: your_database
+      POSTGRES_USER: your_user
+      POSTGRES_PASSWORD: your_password
     volumes:
       - postgres_data:/var/lib/postgresql/data
     restart: on-failure
@@ -25,13 +29,14 @@ services:
 
   bot:
     build: .
-    command: sh -c "python django_app.py migrate && python -m bot.py
-    env_file:
-      - ./.env
-    restart: always
-
+    environment:
+      DATABASE_URL: postgres://school_db:Fhntv123@db:5432/school_db
+      REDIS_URL: redis://redis:6379/0
+      DJANGO_SETTINGS_MODULE: Web.Web.settings
+      BOT_TOKEN: "7433337561:AAH2FAOj2UEebd1zRUEzSKDYwUHHkC9qlJg"
     depends_on:
       - db
       - redis
+    restart: always
     volumes:
       - .:/app
