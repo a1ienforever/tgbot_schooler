@@ -90,20 +90,26 @@ def get_records(today, lesson_num):
 @sync_to_async
 def get_incidents():
     now = timezone.now()
-    week_ago = now - datetime.timedelta(days=7)
+    start_of_week = now - datetime.timedelta(days=now.weekday())
+    end_of_week = start_of_week + datetime.timedelta(days=7)
+
     recent_records_late = IncidentRecord.objects.filter(
-        date__gte=week_ago, status=IncidentRecord.LATE
+        date__gte=start_of_week, date__lt=end_of_week, status=IncidentRecord.LATE
     ).order_by(
         "date",
         "person_id__last_name",
         "person_id__class_assigned__building",
         "person_id__class_assigned",
     )
+
     recent_records_uniform = IncidentRecord.objects.filter(
-        date__gte=week_ago, status=IncidentRecord.WITHOUT_UNIFORM
+        date__gte=start_of_week,
+        date__lt=end_of_week,
+        status=IncidentRecord.WITHOUT_UNIFORM,
     ).order_by(
         "date", "person_id__class_assigned__building", "person_id__class_assigned"
     )
+
     return recent_records_late, recent_records_uniform
 
 
