@@ -40,6 +40,9 @@ class User(models.Model):
     is_superuser = models.BooleanField(default=False, verbose_name="Директор?")
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, null=True)
 
+    def __str__(self):
+        return f"{self.surname} {self.name} {self.patronymic}"
+
 
 class AdminNotification(models.Model):
     date = models.DateField(auto_now_add=True, verbose_name="Дата отправки")
