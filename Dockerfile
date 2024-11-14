@@ -1,8 +1,8 @@
-# Используем официальный образ Python
+# Используем официальный образ Python на основе Alpine
 FROM python:3.12-alpine
 
-# Установка зависимостей для компиляции (удалятся позже)
-RUN apt-get update && apt-get install -y build-essential libpq-dev
+# Установка зависимостей для компиляции (используем apk вместо apt-get)
+RUN apk update && apk add --no-cache build-base postgresql-dev
 
 # Установка рабочей директории
 WORKDIR /app
@@ -14,5 +14,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Копируем весь проект
 COPY . .
 
+
 # Запуск Django миграций и команды запуска
-CMD ["./entrypoint.sh"]
+CMD python /app/django_app.py migrate && \
+    python /app/django_app.py runserver 0.0.0.0:8000 & \
+    python /app/bot.py
