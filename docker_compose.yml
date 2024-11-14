@@ -6,9 +6,9 @@ services:
     env_file:
       - ./.env
     environment:
-      POSTGRES_DB: your_database
-      POSTGRES_USER: your_user
-      POSTGRES_PASSWORD: your_password
+      POSTGRES_DB: school_db
+      POSTGRES_USER: school_db
+      POSTGRES_PASSWORD: Fhntv123
     volumes:
       - postgres_data:/var/lib/postgresql/data
     restart: on-failure
