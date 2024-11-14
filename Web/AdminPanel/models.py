@@ -38,10 +38,16 @@ class User(models.Model):
     name = models.CharField(max_length=100, verbose_name="Имя")
     patronymic = models.CharField(max_length=100, verbose_name="Отчество")
     is_superuser = models.BooleanField(default=False, verbose_name="Директор?")
-    role = models.CharField(max_length=10, choices=ROLE_CHOICES, null=True)
+    role = models.CharField(
+        max_length=10, choices=ROLE_CHOICES, null=True, verbose_name="Должность"
+    )
 
     def __str__(self):
         return f"{self.surname} {self.name} {self.patronymic}"
+
+    class Meta:
+        verbose_name = "Школьный персона"
+        verbose_name_plural = "Школьный персонал"
 
 
 class AdminNotification(models.Model):
