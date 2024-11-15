@@ -12,10 +12,5 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Копируем весь проект
-COPY . .
+COPY . /app
 
-
-# Запуск Django миграций и команды запуска
-CMD python /app/django_app.py migrate && \
-    python /app/django_app.py runserver 0.0.0.0:8000 & \
-    python /app/bot.py
