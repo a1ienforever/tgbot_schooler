@@ -15,3 +15,8 @@ class SchoolerCounter(StatesGroup):
     letter = State()
     count = State()
     lesson_number = State()
+
+
+class InputFile(StatesGroup):
+    call = State()
+    input = State()
