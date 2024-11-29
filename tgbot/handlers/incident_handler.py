@@ -76,6 +76,7 @@ async def late_record(call: CallbackQuery, state: FSMContext, user: TgUser):
         await call.message.edit_text(
             f"Запись создана: \n" f"Опоздавший(-ая) {text}",
         )
+        await state.clear()
     else:
         await IncidentRecord.objects.acreate(
             person_id=person, status=IncidentRecord.WITHOUT_UNIFORM
@@ -83,3 +84,4 @@ async def late_record(call: CallbackQuery, state: FSMContext, user: TgUser):
         await call.message.edit_text(
             f"Запись создана: \n" f"Без формы {text}",
         )
+        await state.clear()

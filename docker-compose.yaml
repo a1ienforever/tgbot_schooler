@@ -31,12 +31,12 @@ services:
     command: >
       sh -c "python django_app.py makemigrations &&
       python django_app.py migrate &&
-      python /app/django_app.py runserver 147.45.237.65:8000"
+      python /app/django_app.py runserver 0.0.0.0:8000"
     environment:
       DJANGO_SETTINGS_MODULE: Web.Web.settings
       BOT_TOKEN: "7433337561:AAH2FAOj2UEebd1zRUEzSKDYwUHHkC9qlJg"
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
     depends_on:
       - db
       - redis

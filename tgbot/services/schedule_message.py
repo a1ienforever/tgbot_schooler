@@ -1,20 +1,24 @@
-from aiogram import Bot
+from aiogram import Bot, Dispatcher
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 
 from Web.AdminPanel.models import User
-from tgbot.services.db import get_admins
+
 from tgbot.utils import get_incidents_message
 
 scheduler = AsyncIOScheduler()
 
 
-async def schedule_messages(bot: Bot, lesson_number: int):
-    users = User.objects.all().filter(tg_user__is_admin=False)
+async def schedule_messages(bot: Bot, lesson_number: int, dp: Dispatcher):
+    users = User.objects.all().filter(role="teacher")
     from tgbot.handlers.user_handler import choose_start
 
     for user in users:
-        await choose_start(user.tg_user.telegram_id, bot, lesson_number)
+        state = dp.fsm.get_context(
+            bot, int(user.tg_user.telegram_id), int(user.tg_user.telegram_id)
+        )
+
+        await choose_start(user.tg_user.telegram_id, bot, lesson_number, state)
 
 
 async def send_all_admin(bot: Bot, msg):
@@ -23,20 +27,21 @@ async def send_all_admin(bot: Bot, msg):
         await bot.send_message(admin.telegram_id, msg)
 
 
-def start_scheduler(bot: Bot):
-    scheduler.add_job(schedule_messages, "cron", hour=8, minute=30, args=[bot, 1])
-    scheduler.add_job(schedule_messages, "cron", hour=9, minute=25, args=[bot, 2])
-    scheduler.add_job(schedule_messages, "cron", hour=10, minute=35, args=[bot, 3])
-    scheduler.add_job(schedule_messages, "cron", hour=11, minute=30, args=[bot, 4])
-    scheduler.add_job(schedule_messages, "cron", hour=12, minute=30, args=[bot, 5])
-    scheduler.add_job(schedule_messages, "cron", hour=13, minute=35, args=[bot, 6])
-    scheduler.add_job(schedule_messages, "cron", hour=14, minute=30, args=[bot, 7])
-    scheduler.add_job(schedule_messages, "cron", hour=15, minute=48, args=[bot, 8])
-    scheduler.add_job(schedule_messages, "cron", hour=16, minute=20, args=[bot, 9])
+async def start_scheduler(bot: Bot, dp: Dispatcher):
+    scheduler.add_job(schedule_messages, "cron", hour=23, minute=18, args=[bot, 1, dp])
+    scheduler.add_job(schedule_messages, "cron", hour=23, minute=19, args=[bot, 2, dp])
+    scheduler.add_job(schedule_messages, "cron", hour=10, minute=35, args=[bot, 3, dp])
+    scheduler.add_job(schedule_messages, "cron", hour=11, minute=30, args=[bot, 4, dp])
+    scheduler.add_job(schedule_messages, "cron", hour=12, minute=30, args=[bot, 5, dp])
+    scheduler.add_job(schedule_messages, "cron", hour=13, minute=35, args=[bot, 6, dp])
+    scheduler.add_job(schedule_messages, "cron", hour=14, minute=30, args=[bot, 7, dp])
+    scheduler.add_job(schedule_messages, "cron", hour=23, minute=6, args=[bot, 8, dp])
+    scheduler.add_job(schedule_messages, "cron", hour=23, minute=7, args=[bot, 9, dp])
+    # scheduler.add_job(schedule_messages, "interval", seconds=3, args=[bot, 9, dp])
     scheduler.add_job(
         send_all_admin,
         CronTrigger(day_of_week="fri", hour=10, minute=0),
-        args=[bot, get_incidents_message()],
+        args=[bot, await get_incidents_message()],
     )
 
     scheduler.start()

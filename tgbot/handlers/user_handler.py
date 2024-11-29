@@ -6,6 +6,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, CallbackQuery
 
 from Web.AdminPanel.models import TgUser
+
 from tgbot.handlers.admin_handler import send_admin
 from tgbot.keyboards.inline import *
 from tgbot.misc.states import SchoolerCounter
@@ -19,19 +20,17 @@ async def choose_start(
     user_id: int, bot: Bot, lesson_number: int, state: FSMContext = None
 ):
     try:
-        if state:
-            current_state = await state.get_state()
-            await state.update_data(message_type="counter")
-            if current_state is not None:
-                print(f"Current state before sending new message: {current_state}")
+        await state.clear()
+        await state.set_state(SchoolerCounter.frame)
+        await state.update_data(message_type="counter")
 
-            await state.set_state(SchoolerCounter.frame)
-            print(f"State set to: {SchoolerCounter.frame} for user {user_id}")
         await bot.send_message(
             user_id,
             "Пожалуйста выберите корпус учащихся",
             reply_markup=choose_frame_kb(lesson_num=lesson_number),
         )
+    except ValueError as ve:
+        logging.error(f"Ошибка состояния: {ve}")
     except AiogramError as e:
         logging.info(f"User: {user_id} - {e}")
 
@@ -153,7 +152,6 @@ async def choose_count(message: Message, state: FSMContext, user: TgUser):
             state_data["count"],
             state_info.get("lesson_num"),
         )
-        print(state_data["message_type"])
         await message.answer(msg, reply_markup=accept_record_kb())
 
     except ValueError as e:
@@ -170,7 +168,7 @@ async def check(call: CallbackQuery, state: FSMContext, user: TgUser):
     if check_record == "accept":
         user1 = await get_user_data(user)
         state_data = await get_state_data(state)
-        await state.clear()
+        # await state.clear()
         await create_record(
             frame=state_data["frame"],
             class_num=state_data["class_num"],
@@ -184,9 +182,11 @@ async def check(call: CallbackQuery, state: FSMContext, user: TgUser):
             f"{state_data['class_num']}{state_data['letter']} - {state_data['count']} человек"
         )
     elif check_record == "restart":
-        await state.clear()
+
         await call.message.edit_text(
             "Пожалуйста выберите корпус учащихся",
             reply_markup=choose_frame_kb(state_info["lesson_num"]),
         )
+        await state.clear()
         await state.set_state(SchoolerCounter.frame)
+        await state.update_data(message_type="counter")

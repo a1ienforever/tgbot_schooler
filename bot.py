@@ -12,17 +12,18 @@ from tgbot.middlewares.config import ConfigMiddleware
 from tgbot.services import broadcaster
 
 
-async def on_startup(bot: Bot, admin_ids: list[int]):
+async def on_startup(bot: Bot, admin_ids: list[int], dp):
     from tgbot.services import schedule_message
 
     await broadcaster.broadcast(bot, admin_ids, "Бот запущен")
 
-    schedule_message.start_scheduler(bot)
+    await schedule_message.start_scheduler(bot, dp)
 
 
 def register_global_middlewares(dp: Dispatcher, config: Config):
     from tgbot.middlewares.database import DatabaseMiddleware
     from tgbot.middlewares.schedule import WorkDayMiddleware
+
     middleware_types = [
         ConfigMiddleware(config),
         DatabaseMiddleware(),
@@ -72,7 +73,7 @@ async def main():
 
     dp.include_routers(*routers_list)
 
-    await on_startup(bot, config.tg_bot.admin_ids)
+    await on_startup(bot, config.tg_bot.admin_ids, dp)
     await dp.start_polling(bot)
 
 
