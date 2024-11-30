@@ -45,10 +45,7 @@ async def choose_start_incident(
     try:
         if state:
             await state.set_state(IncidentForm.frame)
-            if message.text.upper() == "ОПОЗДАВШИЙ":
-                await state.update_data(message_type="later")
-            else:
-                await state.update_data(message_type="without_uniform")
+
         await message.answer(
             "Пожалуйста выберите корпус учащихся",
             reply_markup=choose_frame_kb(lesson_num=lesson_number),

@@ -37,7 +37,6 @@ async def choose_start_incident(
         if state:
             if message.text.upper() == "ОПОЗДАВШИЙ":
                 await state.set_state(IncidentLater.frame)
-                await state.update_data(message_type="later")
 
         await choose_frame_state(message, 1)
     except AiogramError as e:

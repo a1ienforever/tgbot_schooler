@@ -13,7 +13,7 @@ class Incident(StatesGroup):
     letter = State()
 
 
-class SchoolerCounter(StatesGroup, Incident):
+class SchoolerCounter(Incident):
     count = State()
     lesson_number = State()
 
@@ -23,9 +23,9 @@ class InputFile(StatesGroup):
     input = State()
 
 
-class IncidentLater(StatesGroup, Incident):
+class IncidentLater(Incident):
     person = State()
 
 
-class IncidentForm(StatesGroup, Incident):
+class IncidentForm(Incident):
     person = State()
