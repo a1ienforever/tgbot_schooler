@@ -5,6 +5,7 @@ from aiogram.exceptions import AiogramError
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, CallbackQuery
+from icecream import ic
 
 from Web.AdminPanel.models import TgUser
 from Web.Record.models import IncidentRecord
@@ -15,11 +16,16 @@ from tgbot.keyboards.inline import (
     generate_inline_keyboard,
 )
 from tgbot.keyboards.reply import menu_kb
+from tgbot.misc.callback import (
+    FrameCallback,
+    ClassCallback,
+    LetterCallback,
+    PersonCallback,
+)
 from tgbot.misc.states import IncidentForm
 from tgbot.services.choose import (
     choose_frame_state,
     choose_class_state,
-    choose_back,
     choose_letter_state,
 )
 
@@ -45,71 +51,112 @@ async def choose_start_incident(
     try:
         if state:
             await state.set_state(IncidentForm.frame)
-
-        await message.answer(
-            "Пожалуйста выберите корпус учащихся",
-            reply_markup=choose_frame_kb(lesson_num=lesson_number),
-        )
+        await choose_frame_state(message, type_report="form", lesson_num=lesson_number)
     except AiogramError as e:
         logging.info(f"{e}")
 
 
-@router.callback_query(F.data.startswith("frame"), IncidentForm.frame)
-async def choose_frame(call: CallbackQuery, user: TgUser, state: FSMContext):
-    data = call.data.split(":")
-    frame = data[1]
+# сделал
+@router.callback_query(
+    FrameCallback.filter(F.type_report == "form"), IncidentForm.frame
+)
+async def choose_frame(
+    call: CallbackQuery, callback_data: FrameCallback, user: TgUser, state: FSMContext
+):
+    frame = callback_data.frame
+    ic()
+    ic(callback_data)
 
     await state.update_data(frame=frame)
-    await choose_class_state(frame, call)
+    await choose_class_state(
+        type_report="form",
+        lesson_num=callback_data.lesson_num,
+        frame=frame,
+        call=call,
+    )
     await state.set_state(IncidentForm.class_num)
 
 
-@router.callback_query(F.data.startswith("class"), IncidentForm.class_num)
-async def choose_class(call: CallbackQuery, user: TgUser, state: FSMContext):
+# сделал
+@router.callback_query(
+    ClassCallback.filter(F.type_report == "form"), IncidentForm.class_num
+)
+async def choose_class(
+    call: CallbackQuery, callback_data: ClassCallback, user: TgUser, state: FSMContext
+):
     data = await state.get_data()
     frame = data.get("frame")
-    class_num = call.data.split(":")[1]
-
-    if class_num == "back":
+    class_num = callback_data.class_num
+    ic()
+    ic(callback_data)
+    if class_num == 100:
         await state.set_state(IncidentForm.frame)
         await call.message.edit_text(
             "Пожалуйста выберите корпус учащихся",
-            reply_markup=choose_frame_kb(data.get("lesson_num")),
+            reply_markup=choose_frame_kb(
+                type_report="form", lesson_num=callback_data.lesson_num
+            ),
         )
         return
-
+    ic()
     await state.update_data(class_num=class_num)
-    await choose_letter_state(frame, class_num, call)
+    await choose_letter_state(
+        frame,
+        class_num,
+        lesson_num=callback_data.lesson_num,
+        type_report="form",
+        call=call,
+    )
 
     await state.set_state(IncidentForm.letter)
 
 
-@router.callback_query(F.data.startswith("letter"), IncidentForm.letter)
-async def choose_letter(call: CallbackQuery, state: FSMContext, user: TgUser):
-    class_letter = call.data.split(":")[1]
+@router.callback_query(
+    LetterCallback.filter(F.type_report == "form"), IncidentForm.letter
+)
+async def choose_letter(
+    call: CallbackQuery, callback_data: LetterCallback, state: FSMContext, user: TgUser
+):
+    class_letter = callback_data.letter
     data = await state.get_data()
     frame = data.get("frame")
-
+    ic()
+    ic(callback_data)
     if class_letter == "back":
-        await state.set_state(IncidentForm.frame)
-        await choose_back(frame, call)
-
+        await choose_class_state(
+            type_report="form",
+            lesson_num=callback_data.lesson_num,
+            frame=frame,
+            call=call,
+        )
+        await state.set_state(IncidentForm.class_num)
+        return
     await state.update_data(letter=class_letter)
     data = await state.get_data()
     await call.message.edit_text(
         "Выберите имя ученика",
-        reply_markup=generate_inline_keyboard(data).as_markup(),
+        reply_markup=generate_inline_keyboard(
+            type_report="form", state=data
+        ).as_markup(),
     )
     await state.set_state(IncidentForm.person)
 
 
-@router.callback_query(F.data.startswith("person"), IncidentForm.person)
-async def late_record(call: CallbackQuery, state: FSMContext, user: TgUser):
-    person_id = call.data.split(":")[1]
-    data = await state.get_data()
-    if person_id == "back":
+@router.callback_query(
+    PersonCallback.filter(F.type_report == "form"), IncidentForm.person
+)
+async def late_record(
+    call: CallbackQuery, callback_data: PersonCallback, state: FSMContext, user: TgUser
+):
+    person_id = callback_data.person_id
+    # data = await state.get_data()
+    if person_id == -1:
         await state.set_state(IncidentForm.frame)
-        await choose_frame_state(call.message, 1)
+        await call.message.edit_text(
+            "Пожалуйста выберите корпус учащихся",
+            reply_markup=choose_frame_kb(type_report="form", lesson_num=1),
+        )
+        return
 
     person = Person.objects.filter(id=person_id).get()
     text = f"{person.last_name} {person.first_name} {person.class_assigned.grade}{person.class_assigned.letter}"

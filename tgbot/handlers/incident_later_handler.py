@@ -4,6 +4,7 @@ from aiogram import Router, F
 from aiogram.exceptions import AiogramError
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, CallbackQuery
+from icecream import ic
 
 from Web.AdminPanel.models import TgUser
 from Web.Record.models import IncidentRecord
@@ -15,6 +16,7 @@ from tgbot.keyboards.inline import (
     first_frame_class_kb,
     generate_inline_keyboard,
 )
+from tgbot.misc.callback import FrameCallback, ClassCallback
 from tgbot.misc.states import Incident, IncidentLater
 from tgbot.services.choose import (
     choose_frame_state,
@@ -34,31 +36,44 @@ async def choose_start_incident(
     state: FSMContext = None,
 ):
     try:
-        if state:
-            if message.text.upper() == "ОПОЗДАВШИЙ":
-                await state.set_state(IncidentLater.frame)
 
-        await choose_frame_state(message, 1)
+        await state.set_state(IncidentLater.frame)
+
+        await message.answer(
+            "Пожалуйста выберите корпус учащихся",
+            reply_markup=choose_frame_kb(
+                type_report="later",
+                lesson_num=lesson_number,
+            ),
+        )
     except AiogramError as e:
         logging.info(f"{e}")
 
 
-@router.callback_query(F.data.startswith("frame"), IncidentLater.frame)
-async def choose_frame(call: CallbackQuery, user: TgUser, state: FSMContext):
-    data = call.data.split(":")
-    frame = data[1]
+@router.callback_query(
+    FrameCallback.filter(F.type_report == "later"), IncidentLater.frame
+)
+async def choose_frame(
+    call: CallbackQuery, callback_data: FrameCallback, user: TgUser, state: FSMContext
+):
+    frame = callback_data.frame
 
     await state.update_data(frame=frame)
-    await choose_class_state(frame, call)
+    await choose_class_state(type_report="later", frame=frame, call=call, lesson_num=1)
     await state.set_state(IncidentLater.class_num)
 
 
-@router.callback_query(F.data.startswith("class"), IncidentLater.class_num)
-async def choose_class(call: CallbackQuery, user: TgUser, state: FSMContext):
+@router.callback_query(
+    ClassCallback.filter(F.type_report == "later"), IncidentLater.class_num
+)
+async def choose_class(
+    call: CallbackQuery, callback_data: ClassCallback, user: TgUser, state: FSMContext
+):
     data = await state.get_data()
     frame = data.get("frame")
     class_num = call.data.split(":")[1]
-
+    ic()
+    ic(call.data)
     if class_num == "back":
         await state.set_state(IncidentLater.frame)
         await call.message.edit_text(

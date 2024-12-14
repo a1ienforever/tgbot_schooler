@@ -1,14 +1,16 @@
 import logging
 
-from aiogram import Router, F, Bot
+from aiogram import Router, Bot, F
 from aiogram.exceptions import AiogramError
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, CallbackQuery
+from icecream import ic
 
 from Web.AdminPanel.models import TgUser
 
 from tgbot.handlers.admin_handler import send_admin
 from tgbot.keyboards.inline import *
+from tgbot.misc.callback import FrameCallback
 from tgbot.misc.states import SchoolerCounter
 from tgbot.services.choose import choose_class_state, choose_letter_state
 from tgbot.services.db import create_record
@@ -27,7 +29,7 @@ async def choose_start(
         await bot.send_message(
             user_id,
             "Пожалуйста выберите корпус учащихся",
-            reply_markup=choose_frame_kb(lesson_num=lesson_number),
+            reply_markup=choose_frame_kb(type_report="count", lesson_num=lesson_number),
         )
     except ValueError as ve:
         logging.error(f"Ошибка состояния: {ve}")
@@ -35,11 +37,13 @@ async def choose_start(
         logging.info(f"User: {user_id} - {e}")
 
 
-@router.callback_query(F.data.startswith("frame"), SchoolerCounter.frame)
-async def choose_frame(call: CallbackQuery, user: TgUser, state: FSMContext):
-    data = call.data.split(":")
-    frame = data[1]
-    lesson_num = data[2]
+@router.callback_query(FrameCallback.filter(), SchoolerCounter.frame)
+async def choose_frame(
+    call: CallbackQuery, callback_data: FrameCallback, user: TgUser, state: FSMContext
+):
+    ic(callback_data)
+    frame = callback_data.frame
+    lesson_num = callback_data.lesson_num
 
     await state.update_data(frame=frame, lesson_num=lesson_num)
     await state.set_state(SchoolerCounter.class_num)
@@ -109,7 +113,7 @@ async def choose_count(message: Message, state: FSMContext, user: TgUser):
     except ValueError as e:
         await state.set_state(SchoolerCounter.count)
         await message.answer("Введите количество учеников числом", reply_markup=None)
-        print(e)
+        ic(e)
 
 
 @router.callback_query(F.data.startswith("check"))
