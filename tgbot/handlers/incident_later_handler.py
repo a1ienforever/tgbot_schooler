@@ -98,7 +98,7 @@ async def choose_class(
     await state.set_state(IncidentLater.letter)
 
 
-@router.callback_query(LetterCallback.filter(F.type_report == "later"), Incident.letter)
+@router.callback_query(LetterCallback.filter(F.type_report == "later"))
 async def choose_letter(
     call: CallbackQuery, callback_data: LetterCallback, state: FSMContext, user: TgUser
 ):
@@ -128,7 +128,7 @@ async def choose_letter(
 
 
 @router.callback_query(
-    PersonCallback.filter(F.type_report == "later"), IncidentLater.person
+    PersonCallback.filter(F.type_report == "later"),
 )
 async def late_record(
     call: CallbackQuery, callback_data: PersonCallback, state: FSMContext, user: TgUser

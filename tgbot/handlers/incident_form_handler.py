@@ -77,7 +77,7 @@ async def choose_frame(
 
 # сделал
 @router.callback_query(
-    ClassCallback.filter(F.type_report == "form"), IncidentForm.class_num
+    ClassCallback.filter(F.type_report == "form"),
 )
 async def choose_class(
     call: CallbackQuery, callback_data: ClassCallback, user: TgUser, state: FSMContext
@@ -110,7 +110,7 @@ async def choose_class(
 
 
 @router.callback_query(
-    LetterCallback.filter(F.type_report == "form"), IncidentForm.letter
+    LetterCallback.filter(F.type_report == "form"),
 )
 async def choose_letter(
     call: CallbackQuery, callback_data: LetterCallback, state: FSMContext, user: TgUser
@@ -118,6 +118,7 @@ async def choose_letter(
     class_letter = callback_data.letter
     await state.update_data(letter=class_letter)
     data = await state.get_data()
+    ic(data)
     frame = data.get("frame")
     ic()
     ic(callback_data)
@@ -141,7 +142,7 @@ async def choose_letter(
 
 
 @router.callback_query(
-    PersonCallback.filter(F.type_report == "form"), IncidentForm.person
+    PersonCallback.filter(F.type_report == "form"),
 )
 async def late_record(
     call: CallbackQuery, callback_data: PersonCallback, state: FSMContext, user: TgUser
