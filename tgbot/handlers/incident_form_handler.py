@@ -57,9 +57,7 @@ async def choose_start_incident(
 
 
 # сделал
-@router.callback_query(
-    FrameCallback.filter(F.type_report == "form"), IncidentForm.frame
-)
+@router.callback_query(FrameCallback.filter(F.type_report == "form"))
 async def choose_frame(
     call: CallbackQuery, callback_data: FrameCallback, user: TgUser, state: FSMContext
 ):
@@ -118,6 +116,7 @@ async def choose_letter(
     call: CallbackQuery, callback_data: LetterCallback, state: FSMContext, user: TgUser
 ):
     class_letter = callback_data.letter
+    await state.update_data(letter=class_letter)
     data = await state.get_data()
     frame = data.get("frame")
     ic()
@@ -132,7 +131,6 @@ async def choose_letter(
         await state.set_state(IncidentForm.class_num)
         return
     await state.update_data(letter=class_letter)
-    data = await state.get_data()
     await call.message.edit_text(
         "Выберите имя ученика",
         reply_markup=generate_inline_keyboard(
@@ -164,7 +162,8 @@ async def late_record(
     await IncidentRecord.objects.acreate(
         person_id=person, status=IncidentRecord.WITHOUT_UNIFORM
     )
+    await state.clear()
+
     await call.message.edit_text(
         f"Запись создана: \n" f"Без формы {text}",
     )
-    await state.clear()

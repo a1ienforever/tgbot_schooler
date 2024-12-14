@@ -1,5 +1,6 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
+from icecream import ic
 
 from Web.Schooler.models import Person
 from tgbot.misc.callback import (
@@ -522,7 +523,7 @@ def accept_kb():
 
 def generate_inline_keyboard(state: dict, type_report):
     builder = InlineKeyboardBuilder()
-
+    ic(state)
     persons = (
         Person.objects.select_related("class_assigned__building")
         .filter(

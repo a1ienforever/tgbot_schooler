@@ -16,7 +16,12 @@ from tgbot.keyboards.inline import (
     first_frame_class_kb,
     generate_inline_keyboard,
 )
-from tgbot.misc.callback import FrameCallback, ClassCallback
+from tgbot.misc.callback import (
+    FrameCallback,
+    ClassCallback,
+    LetterCallback,
+    PersonCallback,
+)
 from tgbot.misc.states import Incident, IncidentLater
 from tgbot.services.choose import (
     choose_frame_state,
@@ -50,9 +55,7 @@ async def choose_start_incident(
         logging.info(f"{e}")
 
 
-@router.callback_query(
-    FrameCallback.filter(F.type_report == "later"), IncidentLater.frame
-)
+@router.callback_query(FrameCallback.filter(F.type_report == "later"))
 async def choose_frame(
     call: CallbackQuery, callback_data: FrameCallback, user: TgUser, state: FSMContext
 ):
@@ -71,63 +74,81 @@ async def choose_class(
 ):
     data = await state.get_data()
     frame = data.get("frame")
-    class_num = call.data.split(":")[1]
+    class_num = callback_data.class_num
     ic()
     ic(call.data)
-    if class_num == "back":
+    if class_num == 100:
         await state.set_state(IncidentLater.frame)
         await call.message.edit_text(
             "Пожалуйста выберите корпус учащихся",
-            reply_markup=choose_frame_kb(data.get("lesson_num")),
+            reply_markup=choose_frame_kb(
+                type_report="later", lesson_num=callback_data.lesson_num
+            ),
         )
         return
     await state.update_data(class_num=class_num)
-    await choose_letter_state(frame, class_num, call)
+    await choose_letter_state(
+        frame,
+        class_num,
+        lesson_num=callback_data.lesson_num,
+        type_report="later",
+        call=call,
+    )
+
     await state.set_state(IncidentLater.letter)
 
 
-@router.callback_query(F.data.startswith("letter"), Incident.letter)
-async def choose_letter(call: CallbackQuery, state: FSMContext, user: TgUser):
-    class_letter = call.data.split(":")[1]
+@router.callback_query(LetterCallback.filter(F.type_report == "later"), Incident.letter)
+async def choose_letter(
+    call: CallbackQuery, callback_data: LetterCallback, state: FSMContext, user: TgUser
+):
+    class_letter = callback_data.letter
+    await state.update_data(letter=class_letter)
     data = await state.get_data()
     frame = data.get("frame")
 
     if class_letter == "back":
+        await choose_class_state(
+            type_report="later",
+            lesson_num=callback_data.lesson_num,
+            frame=frame,
+            call=call,
+        )
         await state.set_state(IncidentLater.class_num)
-        await choose_class_state(frame, call)
         return
 
     await state.update_data(letter=class_letter)
-    data = await state.get_data()
     await call.message.edit_text(
         "Выберите имя ученика",
-        reply_markup=generate_inline_keyboard(data).as_markup(),
+        reply_markup=generate_inline_keyboard(
+            type_report="later", state=data
+        ).as_markup(),
     )
     await state.set_state(IncidentLater.person)
 
 
-@router.callback_query(F.data.startswith("person"), IncidentLater.person)
-async def late_record(call: CallbackQuery, state: FSMContext, user: TgUser):
-    person_id = call.data.split(":")[1]
+@router.callback_query(
+    PersonCallback.filter(F.type_report == "later"), IncidentLater.person
+)
+async def late_record(
+    call: CallbackQuery, callback_data: PersonCallback, state: FSMContext, user: TgUser
+):
+    person_id = callback_data.person_id
     data = await state.get_data()
 
-    if person_id == "back":
+    if person_id == -1:
         await state.set_state(IncidentLater.frame)
-        if data["frame"] == "4":
-            await call.message.edit_text(
-                "Выберите класс учащихся", reply_markup=second_frame_class_kb()
-            )
-        if data["frame"] == "1":
-            await call.message.edit_text(
-                "Выберите класс учащихся", reply_markup=first_frame_class_kb()
-            )
+        await call.message.edit_text(
+            "Пожалуйста выберите корпус учащихся",
+            reply_markup=choose_frame_kb(type_report="later", lesson_num=1),
+        )
         return
 
     person = Person.objects.filter(id=person_id).get()
     text = f"{person.last_name} {person.first_name} {person.class_assigned.grade}{person.class_assigned.letter}"
 
     await IncidentRecord.objects.acreate(person_id=person, status=IncidentRecord.LATE)
+    await state.clear()
     await call.message.edit_text(
         f"Запись создана: \n" f"Опоздавший(-ая) {text}",
     )
-    await state.clear()
