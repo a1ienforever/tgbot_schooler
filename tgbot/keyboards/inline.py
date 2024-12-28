@@ -1,7 +1,14 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
+from icecream import ic
 
 from Web.Schooler.models import Person
+from tgbot.misc.callback import (
+    FrameCallback,
+    ClassCallback,
+    LetterCallback,
+    PersonCallback,
+)
 
 
 def start_cb():
@@ -36,17 +43,23 @@ def accept_cb(user_id):
     return keyboard
 
 
-def choose_frame_kb(lesson_num):
+def choose_frame_kb(type_report, lesson_num):
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
             [
                 InlineKeyboardButton(
-                    text="1 корпус", callback_data=f"frame:1:{lesson_num}"
+                    text="1 корпус",
+                    callback_data=FrameCallback(
+                        type_report=type_report, lesson_num=lesson_num, frame=1
+                    ).pack(),
                 )
             ],
             [
                 InlineKeyboardButton(
-                    text="4 корпус", callback_data=f"frame:4:{lesson_num}"
+                    text="4 корпус",
+                    callback_data=FrameCallback(
+                        type_report=type_report, lesson_num=lesson_num, frame=4
+                    ).pack(),
                 )
             ],
         ]
@@ -54,162 +67,435 @@ def choose_frame_kb(lesson_num):
     return keyboard
 
 
-def second_frame_class_kb():
+def second_frame_class_kb(type_report, lesson_num):
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
             [
-                InlineKeyboardButton(text="1", callback_data="class:1"),
-                InlineKeyboardButton(text="2", callback_data="class:2"),
-                InlineKeyboardButton(text="3", callback_data="class:3"),
+                InlineKeyboardButton(
+                    text="1",
+                    callback_data=ClassCallback(
+                        type_report=type_report, lesson_num=lesson_num, class_num=1
+                    ).pack(),
+                ),
+                InlineKeyboardButton(
+                    text="2",
+                    callback_data=ClassCallback(
+                        type_report=type_report, lesson_num=lesson_num, class_num=2
+                    ).pack(),
+                ),
+                InlineKeyboardButton(
+                    text="3",
+                    callback_data=ClassCallback(
+                        type_report=type_report, lesson_num=lesson_num, class_num=3
+                    ).pack(),
+                ),
             ],
             [
-                InlineKeyboardButton(text="4", callback_data="class:4"),
-                InlineKeyboardButton(text="5", callback_data="class:5"),
-                InlineKeyboardButton(text="6", callback_data="class:6"),
+                InlineKeyboardButton(
+                    text="4",
+                    callback_data=ClassCallback(
+                        type_report=type_report, lesson_num=lesson_num, class_num=4
+                    ).pack(),
+                ),
+                InlineKeyboardButton(
+                    text="5",
+                    callback_data=ClassCallback(
+                        type_report=type_report, lesson_num=lesson_num, class_num=5
+                    ).pack(),
+                ),
+                InlineKeyboardButton(
+                    text="6",
+                    callback_data=ClassCallback(
+                        type_report=type_report, lesson_num=lesson_num, class_num=6
+                    ).pack(),
+                ),
             ],
             [
-                InlineKeyboardButton(text="7", callback_data="class:7"),
-                InlineKeyboardButton(text="8", callback_data="class:8"),
-                InlineKeyboardButton(text="9", callback_data="class:9"),
+                InlineKeyboardButton(
+                    text="7",
+                    callback_data=ClassCallback(
+                        type_report=type_report, lesson_num=lesson_num, class_num=7
+                    ).pack(),
+                ),
+                InlineKeyboardButton(
+                    text="8",
+                    callback_data=ClassCallback(
+                        type_report=type_report, lesson_num=lesson_num, class_num=8
+                    ).pack(),
+                ),
+                InlineKeyboardButton(
+                    text="9",
+                    callback_data=ClassCallback(
+                        type_report=type_report, lesson_num=lesson_num, class_num=9
+                    ).pack(),
+                ),
             ],
             [
-                InlineKeyboardButton(text="10", callback_data="class:10"),
-                InlineKeyboardButton(text="11", callback_data="class:11"),
+                InlineKeyboardButton(
+                    text="10",
+                    callback_data=ClassCallback(
+                        type_report=type_report, lesson_num=lesson_num, class_num=10
+                    ).pack(),
+                ),
+                InlineKeyboardButton(
+                    text="11",
+                    callback_data=ClassCallback(
+                        type_report=type_report, lesson_num=lesson_num, class_num=11
+                    ).pack(),
+                ),
             ],
-            [InlineKeyboardButton(text="Назад", callback_data="class:back")],
+            [
+                InlineKeyboardButton(
+                    text="Назад",
+                    callback_data=ClassCallback(
+                        type_report=type_report, lesson_num=lesson_num, class_num=100
+                    ).pack(),
+                )
+            ],
         ]
     )
     return keyboard
 
 
-def generate_eab_kb():
+def generate_eab_kb(type_report, lesson_num):
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
             [
-                InlineKeyboardButton(text="Э", callback_data="letter:Э"),
-                InlineKeyboardButton(text="А", callback_data="letter:А"),
-                InlineKeyboardButton(text="Б", callback_data="letter:Б"),
+                InlineKeyboardButton(
+                    text="Э",
+                    callback_data=LetterCallback(
+                        type_report=type_report, lesson_num=lesson_num, letter="З"
+                    ).pack(),
+                ),
+                InlineKeyboardButton(
+                    text="А",
+                    callback_data=LetterCallback(
+                        type_report=type_report, lesson_num=lesson_num, letter="А"
+                    ).pack(),
+                ),
+                InlineKeyboardButton(
+                    text="Б",
+                    callback_data=LetterCallback(
+                        type_report=type_report, lesson_num=lesson_num, letter="Б"
+                    ).pack(),
+                ),
             ],
-            [InlineKeyboardButton(text="Назад", callback_data="letter:back")],
+            [
+                InlineKeyboardButton(
+                    text="Назад",
+                    callback_data=LetterCallback(
+                        type_report=type_report, lesson_num=lesson_num, letter="back"
+                    ).pack(),
+                )
+            ],
         ]
     )
     return keyboard
 
 
-def generate_a_kb():
+def generate_a_kb(type_report, lesson_num):
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
             [
-                InlineKeyboardButton(text="А", callback_data="letter:А"),
+                InlineKeyboardButton(
+                    text="А",
+                    callback_data=LetterCallback(
+                        type_report=type_report, lesson_num=lesson_num, letter="А"
+                    ).pack(),
+                ),
             ],
-            [InlineKeyboardButton(text="Назад", callback_data="letter:back")],
+            [
+                InlineKeyboardButton(
+                    text="Назад",
+                    callback_data=LetterCallback(
+                        type_report=type_report, lesson_num=lesson_num, letter="back"
+                    ).pack(),
+                )
+            ],
         ]
     )
     return keyboard
 
 
-def generate_ea_kb():
+def generate_ea_kb(type_report, lesson_num):
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
             [
-                InlineKeyboardButton(text="А", callback_data="letter:А"),
-                InlineKeyboardButton(text="Э", callback_data="letter:Э"),
+                InlineKeyboardButton(
+                    text="А",
+                    callback_data=LetterCallback(
+                        type_report=type_report, lesson_num=lesson_num, letter="А"
+                    ).pack(),
+                ),
+                InlineKeyboardButton(
+                    text="Э",
+                    callback_data=LetterCallback(
+                        type_report=type_report, lesson_num=lesson_num, letter="З"
+                    ).pack(),
+                ),
             ],
-            [InlineKeyboardButton(text="Назад", callback_data="letter:back")],
+            [
+                InlineKeyboardButton(
+                    text="Назад",
+                    callback_data=LetterCallback(
+                        type_report=type_report, lesson_num=lesson_num, letter="back"
+                    ).pack(),
+                )
+            ],
         ]
     )
     return keyboard
 
 
-def generate_ab_kb():
+def generate_ab_kb(type_report, lesson_num):
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
             [
-                InlineKeyboardButton(text="А", callback_data="letter:А"),
-                InlineKeyboardButton(text="Б", callback_data="letter:Б"),
+                InlineKeyboardButton(
+                    text="А",
+                    callback_data=LetterCallback(
+                        type_report=type_report, lesson_num=lesson_num, letter="А"
+                    ).pack(),
+                ),
+                InlineKeyboardButton(
+                    text="Б",
+                    callback_data=LetterCallback(
+                        type_report=type_report, lesson_num=lesson_num, letter="Б"
+                    ).pack(),
+                ),
             ],
-            [InlineKeyboardButton(text="Назад", callback_data="letter:back")],
+            [
+                InlineKeyboardButton(
+                    text="Назад",
+                    callback_data=LetterCallback(
+                        type_report=type_report, lesson_num=lesson_num, letter="back"
+                    ).pack(),
+                )
+            ],
         ]
     )
     return keyboard
 
 
-def generate_gnste_kb():
+def generate_gnste_kb(type_report, lesson_num):
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
             [
-                InlineKeyboardButton(text="Г", callback_data="letter:Г"),
-                InlineKeyboardButton(text="Н", callback_data="letter:Н"),
-                InlineKeyboardButton(text="С", callback_data="letter:С"),
-                InlineKeyboardButton(text="Т", callback_data="letter:Т"),
-                InlineKeyboardButton(text="Э", callback_data="letter:Э"),
+                InlineKeyboardButton(
+                    text="Г",
+                    callback_data=LetterCallback(
+                        type_report=type_report, lesson_num=lesson_num, letter="Г"
+                    ).pack(),
+                ),
+                InlineKeyboardButton(
+                    text="Н",
+                    callback_data=LetterCallback(
+                        type_report=type_report, lesson_num=lesson_num, letter="Н"
+                    ).pack(),
+                ),
+                InlineKeyboardButton(
+                    text="С",
+                    callback_data=LetterCallback(
+                        type_report=type_report, lesson_num=lesson_num, letter="С"
+                    ).pack(),
+                ),
+                InlineKeyboardButton(
+                    text="Т",
+                    callback_data=LetterCallback(
+                        type_report=type_report, lesson_num=lesson_num, letter="Т"
+                    ).pack(),
+                ),
+                InlineKeyboardButton(
+                    text="Э",
+                    callback_data=LetterCallback(
+                        type_report=type_report, lesson_num=lesson_num, letter="З"
+                    ).pack(),
+                ),
             ],
-            [InlineKeyboardButton(text="Назад", callback_data="letter:back")],
+            [
+                InlineKeyboardButton(
+                    text="Назад",
+                    callback_data=LetterCallback(
+                        type_report=type_report, lesson_num=lesson_num, letter="back"
+                    ).pack(),
+                )
+            ],
         ]
     )
     return keyboard
 
 
-def generate_gnte_kb():
+def generate_gnte_kb(type_report, lesson_num):
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
             [
-                InlineKeyboardButton(text="Г", callback_data="letter:Г"),
-                InlineKeyboardButton(text="Н", callback_data="letter:Н"),
-                InlineKeyboardButton(text="Т", callback_data="letter:Т"),
-                InlineKeyboardButton(text="Э", callback_data="letter:Э"),
+                InlineKeyboardButton(
+                    text="Г",
+                    callback_data=LetterCallback(
+                        type_report=type_report, lesson_num=lesson_num, letter="Г"
+                    ).pack(),
+                ),
+                InlineKeyboardButton(
+                    text="Н",
+                    callback_data=LetterCallback(
+                        type_report=type_report, lesson_num=lesson_num, letter="Н"
+                    ).pack(),
+                ),
+                InlineKeyboardButton(
+                    text="Т",
+                    callback_data=LetterCallback(
+                        type_report=type_report, lesson_num=lesson_num, letter="Т"
+                    ).pack(),
+                ),
+                InlineKeyboardButton(
+                    text="Э",
+                    callback_data=LetterCallback(
+                        type_report=type_report, lesson_num=lesson_num, letter="З"
+                    ).pack(),
+                ),
             ],
-            [InlineKeyboardButton(text="Назад", callback_data="letter:back")],
+            [
+                InlineKeyboardButton(
+                    text="Назад",
+                    callback_data=LetterCallback(
+                        type_report=type_report, lesson_num=lesson_num, letter="back"
+                    ).pack(),
+                )
+            ],
         ]
     )
     return keyboard
 
 
-def generate_npt_kb():
+def generate_npt_kb(type_report, lesson_num=None):
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
             [
-                InlineKeyboardButton(text="Н", callback_data="letter:Н"),
-                InlineKeyboardButton(text="П", callback_data="letter:П"),
-                InlineKeyboardButton(text="Т", callback_data="letter:Т"),
+                InlineKeyboardButton(
+                    text="Н",
+                    callback_data=LetterCallback(
+                        type_report=type_report, lesson_num=lesson_num, letter="Н"
+                    ).pack(),
+                ),
+                InlineKeyboardButton(
+                    text="П",
+                    callback_data=LetterCallback(
+                        type_report=type_report, lesson_num=lesson_num, letter="П"
+                    ).pack(),
+                ),
+                InlineKeyboardButton(
+                    text="Т",
+                    callback_data=LetterCallback(
+                        type_report=type_report, lesson_num=lesson_num, letter="Т"
+                    ).pack(),
+                ),
             ],
-            [InlineKeyboardButton(text="Назад", callback_data="letter:back")],
+            [
+                InlineKeyboardButton(
+                    text="Назад",
+                    callback_data=LetterCallback(
+                        type_report=type_report, lesson_num=lesson_num, letter="back"
+                    ).pack(),
+                )
+            ],
         ]
     )
     return keyboard
 
 
-def first_frame_class_kb():
+def first_frame_class_kb(type_report, lesson_num):
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
             [
-                InlineKeyboardButton(text="1", callback_data="class:1"),
-                InlineKeyboardButton(text="2", callback_data="class:2"),
-                InlineKeyboardButton(text="3", callback_data="class:3"),
+                InlineKeyboardButton(
+                    text="1",
+                    callback_data=ClassCallback(
+                        type_report=type_report, lesson_num=lesson_num, class_num=1
+                    ).pack(),
+                ),
+                InlineKeyboardButton(
+                    text="2",
+                    callback_data=ClassCallback(
+                        type_report=type_report, lesson_num=lesson_num, class_num=2
+                    ).pack(),
+                ),
+                InlineKeyboardButton(
+                    text="3",
+                    callback_data=ClassCallback(
+                        type_report=type_report, lesson_num=lesson_num, class_num=3
+                    ).pack(),
+                ),
+                InlineKeyboardButton(
+                    text="4",
+                    callback_data=ClassCallback(
+                        type_report=type_report, lesson_num=lesson_num, class_num=4
+                    ).pack(),
+                ),
+                InlineKeyboardButton(
+                    text="5",
+                    callback_data=ClassCallback(
+                        type_report=type_report, lesson_num=lesson_num, class_num=5
+                    ).pack(),
+                ),
+                InlineKeyboardButton(
+                    text="6",
+                    callback_data=ClassCallback(
+                        type_report=type_report, lesson_num=lesson_num, class_num=6
+                    ).pack(),
+                ),
             ],
             [
-                InlineKeyboardButton(text="4", callback_data="class:4"),
-                InlineKeyboardButton(text="5", callback_data="class:5"),
-                InlineKeyboardButton(text="6", callback_data="class:6"),
+                InlineKeyboardButton(
+                    text="7",
+                    callback_data=ClassCallback(
+                        type_report=type_report, lesson_num=lesson_num, class_num=7
+                    ).pack(),
+                ),
             ],
             [
-                InlineKeyboardButton(text="7", callback_data="class:7"),
+                InlineKeyboardButton(
+                    text="Назад",
+                    callback_data=ClassCallback(
+                        type_report=type_report, lesson_num=lesson_num, class_num=100
+                    ).pack(),
+                )
             ],
-            [InlineKeyboardButton(text="Назад", callback_data="class:back")],
         ]
     )
     return keyboard
 
 
-def first_frame_letter_kb():
+def first_frame_letter_kb(type_report, lesson_num):
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
             [
-                InlineKeyboardButton(text="А", callback_data="letter:А"),
-                InlineKeyboardButton(text="Б", callback_data="letter:Б"),
-                InlineKeyboardButton(text="В", callback_data="letter:В"),
+                InlineKeyboardButton(
+                    text="А",
+                    callback_data=LetterCallback(
+                        type_report=type_report, lesson_num=lesson_num, letter="А"
+                    ).pack(),
+                ),
+                InlineKeyboardButton(
+                    text="Б",
+                    callback_data=LetterCallback(
+                        type_report=type_report, lesson_num=lesson_num, letter="Б"
+                    ).pack(),
+                ),
+                InlineKeyboardButton(
+                    text="В",
+                    callback_data=LetterCallback(
+                        type_report=type_report, lesson_num=lesson_num, letter="В"
+                    ).pack(),
+                ),
             ],
-            [InlineKeyboardButton(text="Назад", callback_data="letter:back")],
+            [
+                InlineKeyboardButton(
+                    text="Назад",
+                    callback_data=LetterCallback(
+                        type_report=type_report, lesson_num=lesson_num, letter="back"
+                    ).pack(),
+                )
+            ],
         ]
     )
     return keyboard
@@ -235,9 +521,9 @@ def accept_kb():
     return keyboard
 
 
-def generate_inline_keyboard(state: dict):
+def generate_inline_keyboard(state: dict, type_report):
     builder = InlineKeyboardBuilder()
-
+    ic(state)
     persons = (
         Person.objects.select_related("class_assigned__building")
         .filter(
@@ -250,8 +536,14 @@ def generate_inline_keyboard(state: dict):
 
     for person in persons:
         name = f"{person.last_name} {person.first_name}"
-        builder.button(text=name, callback_data=f"person:{person.id}")
-    builder.button(text="Назад", callback_data="person:back")
+        builder.button(
+            text=name,
+            callback_data=PersonCallback(type_report=type_report, person_id=person.id),
+        )
+    builder.button(
+        text="Назад",
+        callback_data=PersonCallback(type_report=type_report, person_id=-1),
+    )
 
     builder.adjust(2)
 

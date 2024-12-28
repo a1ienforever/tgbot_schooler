@@ -138,12 +138,12 @@ const fileInputUpdatePath = () => {
   const observer = new MutationObserver((mutations) => {
     for (const mutation of mutations) {
       if (mutation.type === "childList") {
-        for (const input of document.querySelectorAll("input[type=file]")) {
+        for (const input of document.querySelectorAll("input[type_report=file]")) {
           input.addEventListener("change", (e) => {
             const parts = e.target.value.split("\\");
             const placeholder =
               input.parentNode.parentNode.parentNode.querySelector(
-                "input[type=text]"
+                "input[type_report=text]"
               );
             placeholder.setAttribute("value", parts[parts.length - 1]);
           });

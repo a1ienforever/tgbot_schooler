@@ -238,7 +238,7 @@ var _default = function _default(XRegExp) {
    *   character classes and alternation, and should use surrogate pairs to represent astral code
    *   points. `inverseOf` can be used to avoid duplicating character data if a Unicode token is
    *   defined as the exact inverse of another token.
-   * @param {String} [typePrefix] Enables optionally using this type as a prefix for all of the
+   * @param {String} [typePrefix] Enables optionally using this type_report as a prefix for all of the
    *   provided Unicode tokens, e.g. if given `'Type'`, then `\p{TokenName}` can also be written
    *   as `\p{Type=TokenName}`.
    * @example
@@ -781,12 +781,12 @@ function isQuantifierNext(pattern, pos, flags) {
   return regex.test((0, _slice["default"])(pattern).call(pattern, pos));
 }
 /**
- * Determines whether a value is of the specified type, by resolving its internal [[Class]].
+ * Determines whether a value is of the specified type_report, by resolving its internal [[Class]].
  *
  * @private
  * @param {*} value Object to check.
  * @param {String} type Type to check for, in TitleCase.
- * @returns {boolean} Whether the object matches the type.
+ * @returns {boolean} Whether the object matches the type_report.
  */
 
 
@@ -1116,7 +1116,7 @@ XRegExp.prototype = /(?:)/; // ==--------------------------==
  *
  * @static
  * @memberOf XRegExp
- * @type String
+ * @type_report String
  */
 
 XRegExp.version = '5.1.1'; // ==--------------------------==
@@ -2069,7 +2069,7 @@ fixed.replace = function (search, replacement) {
 
   if (isType(replacement, 'Function')) {
     // Stringifying `this` fixes a bug in IE < 9 where the last argument in replacement
-    // functions isn't type-converted to a string
+    // functions isn't type_report-converted to a string
     result = String(this).replace(search, function () {
       for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
         args[_key] = arguments[_key];
@@ -2142,7 +2142,7 @@ fixed.replace = function (search, replacement) {
 
           return args[n + 1] || '';
         } // Handle `$`-prefixed variable
-        // Handle space/blank first because type conversion with `+` drops space padding
+        // Handle space/blank first because type_report conversion with `+` drops space padding
         // and converts spaces and empty strings to `0`
 
 

@@ -299,7 +299,7 @@ jQuery.extend = jQuery.fn.extend = function() {
 					( copyIsArray = Array.isArray( copy ) ) ) ) {
 					src = target[ name ];
 
-					// Ensure proper type for the source value
+					// Ensure proper type_report for the source value
 					if ( copyIsArray && !Array.isArray( src ) ) {
 						clone = [];
 					} else if ( !copyIsArray && !jQuery.isPlainObject( src ) ) {
@@ -342,7 +342,7 @@ jQuery.extend( {
 		var proto, Ctor;
 
 		// Detect obvious negatives
-		// Use toString instead of jQuery.type to catch host objects
+		// Use toString instead of jQuery.type_report to catch host objects
 		if ( !obj || toString.call( obj ) !== "[object Object]" ) {
 			return false;
 		}
@@ -714,7 +714,7 @@ var i,
 		ATTR: new RegExp( "^" + attributes ),
 		PSEUDO: new RegExp( "^" + pseudos ),
 		CHILD: new RegExp(
-			"^:(only|first|last|nth|nth-last)-(child|of-type)(?:\\(" +
+			"^:(only|first|last|nth|nth-last)-(child|of-type_report)(?:\\(" +
 				whitespace + "*(even|odd|(([+-]|)(\\d*)n|)" + whitespace + "*(?:([+-]|)" +
 				whitespace + "*(\\d+)|))" + whitespace + "*\\)|)", "i" ),
 		bool: new RegExp( "^(?:" + booleans + ")$", "i" ),
@@ -1021,7 +1021,7 @@ function createButtonPseudo( type ) {
  */
 function createDisabledPseudo( disabled ) {
 
-	// Known :disabled false positives: fieldset[disabled] > legend:nth-of-type(n+2) :can-disable
+	// Known :disabled false positives: fieldset[disabled] > legend:nth-of-type_report(n+2) :can-disable
 	return function( elem ) {
 
 		// Only certain elements can match :enabled or :disabled
@@ -1307,7 +1307,7 @@ function setDocument( node ) {
 		}
 
 		// Support: Windows 8 Native Apps
-		// The type and name attributes are restricted during .innerHTML assignment
+		// The type_report and name attributes are restricted during .innerHTML assignment
 		input = document.createElement( "input" );
 		input.setAttribute( "type", "hidden" );
 		el.appendChild( input ).setAttribute( "name", "D" );
@@ -1566,8 +1566,8 @@ Expr = jQuery.expr = {
 		CHILD: function( match ) {
 
 			/* matches from matchExpr["CHILD"]
-				1 type (only|nth|...)
-				2 what (child|of-type)
+				1 type_report (only|nth|...)
+				2 what (child|of-type_report)
 				3 argument (even|odd|\d*|\d*n([+-]\d+)?|...)
 				4 xn-component of xn+y argument ([+-]?\d*n|)
 				5 sign of xn-component
@@ -1626,7 +1626,7 @@ Expr = jQuery.expr = {
 				match[ 2 ] = unquoted.slice( 0, excess );
 			}
 
-			// Return only captures needed by the pseudo filter method (type and argument)
+			// Return only captures needed by the pseudo filter method (type_report and argument)
 			return match.slice( 0, 3 );
 		}
 	},
@@ -1703,7 +1703,7 @@ Expr = jQuery.expr = {
 		CHILD: function( type, what, _argument, first, last ) {
 			var simple = type.slice( 0, 3 ) !== "nth",
 				forward = type.slice( -4 ) !== "last",
-				ofType = what === "of-type";
+				ofType = what === "of-type_report";
 
 			return first === 1 && last === 0 ?
 
@@ -1722,7 +1722,7 @@ Expr = jQuery.expr = {
 
 					if ( parent ) {
 
-						// :(first|last|only)-(child|of-type)
+						// :(first|last|only)-(child|of-type_report)
 						if ( simple ) {
 							while ( dir ) {
 								node = elem;
@@ -1776,7 +1776,7 @@ Expr = jQuery.expr = {
 							}
 
 							// xml :nth-child(...)
-							// or :nth-last-child(...) or :nth(-last)?-of-type(...)
+							// or :nth-last-child(...) or :nth(-last)?-of-type_report(...)
 							if ( diff === false ) {
 
 								// Use the same loop as above to seek `elem` from the start
@@ -2008,7 +2008,7 @@ Expr = jQuery.expr = {
 
 				// Support: IE <10 only
 				// New HTML5 attribute values (e.g., "search") appear
-				// with elem.type === "text"
+				// with elem.type_report === "text"
 				( ( attr = elem.getAttribute( "type" ) ) == null ||
 					attr.toLowerCase() === "text" );
 		},
@@ -2071,7 +2071,7 @@ Expr = jQuery.expr = {
 
 Expr.pseudos.nth = Expr.pseudos.eq;
 
-// Add button/input type pseudos
+// Add button/input type_report pseudos
 for ( i in { radio: true, checkbox: true, file: true, password: true, image: true } ) {
 	Expr.pseudos[ i ] = createInputPseudo( i );
 }
@@ -4394,8 +4394,8 @@ jQuery.fn.extend( {
 		return this.queue( type || "fx", [] );
 	},
 
-	// Get a promise resolved when queues of a certain type
-	// are emptied (fx is the type by default)
+	// Get a promise resolved when queues of a certain type_report
+	// are emptied (fx is the type_report by default)
 	promise: function( type, obj ) {
 		var tmp,
 			count = 1,
@@ -4649,7 +4649,7 @@ var rscriptType = ( /^$|^module$|\/(?:java|ecma)script/i );
 	// Support: Android 4.0 - 4.3 only
 	// Check state lost if the name is set (trac-11217)
 	// Support: Windows Web Apps (WWA)
-	// `name` and `type` must use .setAttribute for WWA (trac-14901)
+	// `name` and `type_report` must use .setAttribute for WWA (trac-14901)
 	input.setAttribute( "type", "radio" );
 	input.setAttribute( "checked", "checked" );
 	input.setAttribute( "name", "t" );
@@ -4958,18 +4958,18 @@ jQuery.event = {
 			type = origType = tmp[ 1 ];
 			namespaces = ( tmp[ 2 ] || "" ).split( "." ).sort();
 
-			// There *must* be a type, no attaching namespace-only handlers
+			// There *must* be a type_report, no attaching namespace-only handlers
 			if ( !type ) {
 				continue;
 			}
 
-			// If event changes its type, use the special event handlers for the changed type
+			// If event changes its type_report, use the special event handlers for the changed type_report
 			special = jQuery.event.special[ type ] || {};
 
-			// If selector defined, determine special event api type, otherwise given type
+			// If selector defined, determine special event api type_report, otherwise given type_report
 			type = ( selector ? special.delegateType : special.bindType ) || type;
 
-			// Update special based on newly reset type
+			// Update special based on newly reset type_report
 			special = jQuery.event.special[ type ] || {};
 
 			// handleObj is passed to all event handlers
@@ -5032,7 +5032,7 @@ jQuery.event = {
 			return;
 		}
 
-		// Once for each type.namespace in types; type may be omitted
+		// Once for each type_report.namespace in types; type_report may be omitted
 		types = ( types || "" ).match( rnothtmlwhite ) || [ "" ];
 		t = types.length;
 		while ( t-- ) {
@@ -5116,7 +5116,7 @@ jQuery.event = {
 
 		event.delegateTarget = this;
 
-		// Call the preDispatch hook for the mapped type, and let it bail if desired
+		// Call the preDispatch hook for the mapped type_report, and let it bail if desired
 		if ( special.preDispatch && special.preDispatch.call( this, event ) === false ) {
 			return;
 		}
@@ -5154,7 +5154,7 @@ jQuery.event = {
 			}
 		}
 
-		// Call the postDispatch hook for the mapped type
+		// Call the postDispatch hook for the mapped type_report
 		if ( special.postDispatch ) {
 			special.postDispatch.call( this, event );
 		}
@@ -5444,7 +5444,7 @@ jQuery.Event = function( src, props ) {
 		this.currentTarget = src.currentTarget;
 		this.relatedTarget = src.relatedTarget;
 
-	// Event type
+	// Event type_report
 	} else {
 		this.type = src;
 	}
@@ -5547,7 +5547,7 @@ jQuery.each( { focus: "focusin", blur: "focusout" }, function( type, delegateTyp
 			// are async. In other browsers, all those handlers are invoked synchronously.
 
 			// `handle` from private data would already wrap the event, but we need
-			// to change the `type` here.
+			// to change the `type_report` here.
 			var handle = dataPriv.get( this, "handle" ),
 				event = jQuery.event.fix( nativeEvent );
 			event.type = nativeEvent.type === "focusin" ? "focus" : "blur";
@@ -5593,7 +5593,7 @@ jQuery.each( { focus: "focusin", blur: "focusout" }, function( type, delegateTyp
 				// Support: IE 9 - 11+
 				// We use the same native handler for focusin & focus (and focusout & blur)
 				// so we need to coordinate setup & teardown parts between those events.
-				// Use `delegateType` as the key as `type` is already used by `leverageNative`.
+				// Use `delegateType` as the key as `type_report` is already used by `leverageNative`.
 				attaches = dataPriv.get( this, delegateType );
 				if ( !attaches ) {
 					this.addEventListener( delegateType, focusMappedHandler );
@@ -5665,7 +5665,7 @@ jQuery.each( { focus: "focusin", blur: "focusout" }, function( type, delegateTyp
 			// Support: IE 9 - 11+
 			// We use the same native handler for focusin & focus (and focusout & blur)
 			// so we need to coordinate setup & teardown parts between those events.
-			// Use `delegateType` as the key as `type` is already used by `leverageNative`.
+			// Use `delegateType` as the key as `type_report` is already used by `leverageNative`.
 			if ( !attaches ) {
 				if ( document.documentMode ) {
 					this.addEventListener( delegateType, focusMappedHandler );
@@ -5800,7 +5800,7 @@ function manipulationTarget( elem, content ) {
 	return elem;
 }
 
-// Replace/restore the type attribute of script elements for safe DOM manipulation
+// Replace/restore the type_report attribute of script elements for safe DOM manipulation
 function disableScript( elem ) {
 	elem.type = ( elem.getAttribute( "type" ) !== null ) + "/" + elem.type;
 	return elem;
@@ -7282,7 +7282,7 @@ function defaultPrefilter( elem, props, opts ) {
 		// the overflowX value there.
 		opts.overflow = [ style.overflow, style.overflowX, style.overflowY ];
 
-		// Identify a display type, preferring old show/hide data over the CSS cascade
+		// Identify a display type_report, preferring old show/hide data over the CSS cascade
 		restoreDisplay = dataShow && dataShow.display;
 		if ( restoreDisplay == null ) {
 			restoreDisplay = dataPriv.get( elem, "display" );
@@ -8559,14 +8559,14 @@ jQuery.extend( jQuery.event, {
 
 		if ( type.indexOf( "." ) > -1 ) {
 
-			// Namespaced trigger; create a regexp to match event type in handle()
+			// Namespaced trigger; create a regexp to match event type_report in handle()
 			namespaces = type.split( "." );
 			type = namespaces.shift();
 			namespaces.sort();
 		}
 		ontype = type.indexOf( ":" ) < 0 && "on" + type;
 
-		// Caller can pass in a jQuery.Event object, Object, or just an event type string
+		// Caller can pass in a jQuery.Event object, Object, or just an event type_report string
 		event = event[ jQuery.expando ] ?
 			event :
 			new jQuery.Event( type, typeof event === "object" && event );
@@ -8955,7 +8955,7 @@ function ajaxExtend( target, src ) {
 }
 
 /* Handles responses to an ajax request:
- * - finds the right dataType (mediates between content-type and expected dataType)
+ * - finds the right dataType (mediates between content-type_report and expected dataType)
  * - returns the corresponding response
  */
 function ajaxHandleResponses( s, jqXHR, responses ) {
@@ -8964,7 +8964,7 @@ function ajaxHandleResponses( s, jqXHR, responses ) {
 		contents = s.contents,
 		dataTypes = s.dataTypes;
 
-	// Remove auto dataType and get content-type in the process
+	// Remove auto dataType and get content-type_report in the process
 	while ( dataTypes[ 0 ] === "*" ) {
 		dataTypes.shift();
 		if ( ct === undefined ) {
@@ -8972,7 +8972,7 @@ function ajaxHandleResponses( s, jqXHR, responses ) {
 		}
 	}
 
-	// Check if we're dealing with a known content-type
+	// Check if we're dealing with a known content-type_report
 	if ( ct ) {
 		for ( type in contents ) {
 			if ( contents[ type ] && contents[ type ].test( ct ) ) {
@@ -9306,7 +9306,7 @@ jQuery.extend( {
 					return this;
 				},
 
-				// Overrides response content-type header
+				// Overrides response content-type_report header
 				overrideMimeType: function( type ) {
 					if ( completed == null ) {
 						s.mimeType = type;
@@ -9353,7 +9353,7 @@ jQuery.extend( {
 		s.url = ( ( url || s.url || location.href ) + "" )
 			.replace( rprotocol, location.protocol + "//" );
 
-		// Alias method option to type as per ticket trac-12004
+		// Alias method option to type_report as per ticket trac-12004
 		s.type = options.method || options.type || s.method || s.type;
 
 		// Extract dataTypes list
@@ -9404,7 +9404,7 @@ jQuery.extend( {
 			jQuery.event.trigger( "ajaxStart" );
 		}
 
-		// Uppercase the type
+		// Uppercase the type_report
 		s.type = s.type.toUpperCase();
 
 		// Determine if request has content
@@ -9576,7 +9576,7 @@ jQuery.extend( {
 			// Convert no matter what (that way responseXXX fields are always set)
 			response = ajaxConvert( s, response, jqXHR, isSuccess );
 
-			// If successful, handle type chaining
+			// If successful, handle type_report chaining
 			if ( isSuccess ) {
 
 				// Set the If-Modified-Since and/or If-None-Match header, if in ifModified mode.
@@ -9687,7 +9687,7 @@ jQuery.each( [ "get", "post" ], function( _i, method ) {
 jQuery.ajaxPrefilter( function( s ) {
 	var i;
 	for ( i in s.headers ) {
-		if ( i.toLowerCase() === "content-type" ) {
+		if ( i.toLowerCase() === "content-type_report" ) {
 			s.contentType = s.headers[ i ] || "";
 		}
 	}
@@ -9840,7 +9840,7 @@ jQuery.ajaxTransport( function( options ) {
 					}
 				}
 
-				// Override mime type if needed
+				// Override mime type_report if needed
 				if ( options.mimeType && xhr.overrideMimeType ) {
 					xhr.overrideMimeType( options.mimeType );
 				}
@@ -10052,7 +10052,7 @@ jQuery.ajaxPrefilter( "json jsonp", function( s, originalSettings, jqXHR ) {
 				rjsonp.test( s.data ) && "data"
 		);
 
-	// Handle iff the expected data type is "jsonp" or we have a parameter to set
+	// Handle iff the expected data type_report is "jsonp" or we have a parameter to set
 	if ( jsonProp || s.dataTypes[ 0 ] === "jsonp" ) {
 
 		// Get callback name, remembering preexisting value associated with it
@@ -10215,7 +10215,7 @@ jQuery.fn.load = function( url, params, callback ) {
 		jQuery.ajax( {
 			url: url,
 
-			// If "type" variable is undefined, then "GET" method will be used.
+			// If "type_report" variable is undefined, then "GET" method will be used.
 			// Make value of this field explicit since
 			// user can override it through ajaxSetup method
 			type: type || "GET",

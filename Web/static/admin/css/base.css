@@ -490,8 +490,8 @@ textarea {
 }
 
 /*
-Minifiers remove the default (text) "type" attribute from "input" HTML tags.
-Add input:not([type]) to make the CSS stylesheet work the same.
+Minifiers remove the default (text) "type_report" attribute from "input" HTML tags.
+Add input:not([type_report]) to make the CSS stylesheet work the same.
 */
 input:not([type]), input[type=text], input[type=password], input[type=email],
 input[type=url], input[type=number], input[type=tel], textarea, select,
@@ -505,8 +505,8 @@ input[type=url], input[type=number], input[type=tel], textarea, select,
 }
 
 /*
-Minifiers remove the default (text) "type" attribute from "input" HTML tags.
-Add input:not([type]) to make the CSS stylesheet work the same.
+Minifiers remove the default (text) "type_report" attribute from "input" HTML tags.
+Add input:not([type_report]) to make the CSS stylesheet work the same.
 */
 input:not([type]):focus, input[type=text]:focus, input[type=password]:focus,
 input[type=email]:focus, input[type=url]:focus, input[type=number]:focus,
