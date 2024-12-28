@@ -37,7 +37,9 @@ async def choose_start(
         logging.info(f"User: {user_id} - {e}")
 
 
-@router.callback_query(FrameCallback.filter(), SchoolerCounter.frame)
+@router.callback_query(
+    FrameCallback.filter(F.type_report == "count"),
+)
 async def choose_frame(
     call: CallbackQuery, callback_data: FrameCallback, user: TgUser, state: FSMContext
 ):
@@ -47,34 +49,52 @@ async def choose_frame(
 
     await state.update_data(frame=frame, lesson_num=lesson_num)
     await state.set_state(SchoolerCounter.class_num)
-    await choose_class_state(frame, call)
+    await choose_class_state(
+        type_report="count", lesson_num=lesson_num, frame=frame, call=call
+    )
 
 
-@router.callback_query(F.data.startswith("class"), SchoolerCounter.class_num)
-async def choose_class(call: CallbackQuery, user: TgUser, state: FSMContext):
+@router.callback_query(
+    ClassCallback.filter(F.type_report == "count"),
+)
+async def choose_class(
+    call: CallbackQuery, callback_data: ClassCallback, user: TgUser, state: FSMContext
+):
     data = await state.get_data()
     frame = data.get("frame")
-    class_num = call.data.split(":")[1]
-
-    if class_num == "back":
+    class_num = callback_data.class_num
+    ic()
+    if class_num == 100:
         await state.set_state(SchoolerCounter.frame)
         await call.message.edit_text(
             "Пожалуйста выберите корпус учащихся",
-            reply_markup=choose_frame_kb(data.get("lesson_num")),
+            reply_markup=choose_frame_kb(
+                type_report="count", lesson_num=data.get("lesson_num")
+            ),
         )
         return
-
+    ic()
     await state.update_data(class_num=class_num)
     await state.set_state(SchoolerCounter.letter)
-    await choose_letter_state(frame, class_num, call)
+    await choose_letter_state(
+        frame=frame,
+        class_num=class_num,
+        lesson_num=data.get("lesson_num"),
+        type_report="count",
+        call=call,
+    )
 
 
-@router.callback_query(F.data.startswith("letter"), SchoolerCounter.letter)
-async def choose_letter(call: CallbackQuery, state: FSMContext, user: TgUser):
-    class_letter = call.data.split(":")[1]
+@router.callback_query(
+    LetterCallback.filter(F.type_report == "count"),
+)
+async def choose_letter(
+    call: CallbackQuery, callback_data: LetterCallback, state: FSMContext, user: TgUser
+):
+    class_letter = callback_data.letter
     data = await state.get_data()
     frame = data.get("frame")
-
+    ic()
     if class_letter == "back":
         await state.set_state(SchoolerCounter.class_num)
         if frame == "4":
@@ -109,7 +129,7 @@ async def choose_count(message: Message, state: FSMContext, user: TgUser):
             state_info.get("lesson_num"),
         )
         await message.answer(msg, reply_markup=accept_record_kb())
-
+        ic()
     except ValueError as e:
         await state.set_state(SchoolerCounter.count)
         await message.answer("Введите количество учеников числом", reply_markup=None)
@@ -135,11 +155,12 @@ async def check(call: CallbackQuery, state: FSMContext, user: TgUser):
             f"{user1.name} {user1.patronymic}, сделана запись: на {state_info.get('lesson_num')} уроке в {state_data['frame']} корпусе "
             f"{state_data['class_num']}{state_data['letter']} - {state_data['count']} человек"
         )
+        await state.clear()
     elif check_record == "restart":
         await state.clear()
         await state.set_state(SchoolerCounter.frame)
 
         await call.message.edit_text(
             "Пожалуйста выберите корпус учащихся",
-            reply_markup=choose_frame_kb(state_info["lesson_num"]),
+            reply_markup=choose_frame_kb("count", state_info["lesson_num"]),
         )
