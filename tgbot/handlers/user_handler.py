@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from curses.ascii import isdigit
 
@@ -15,7 +16,7 @@ from tgbot.misc.callback import FrameCallback
 from tgbot.misc.states import SchoolerCounter
 from tgbot.services.choose import choose_class_state, choose_letter_state
 from tgbot.services.db import create_record
-from tgbot.utils import get_user_data, get_state_data, format_message
+from tgbot.utils import get_user_data, get_state_data, format_message, delete_message_later
 
 router = Router()
 
@@ -27,11 +28,14 @@ async def choose_start(
         await state.clear()
         await state.set_state(SchoolerCounter.frame)
 
-        await bot.send_message(
+        sent_message = await bot.send_message(
             user_id,
             "Пожалуйста выберите корпус учащихся",
             reply_markup=choose_frame_kb(type_report="count", lesson_num=lesson_number),
         )
+
+        asyncio.create_task(delete_message_later(bot, user_id, sent_message.message_id, delay=2700))
+
     except ValueError as ve:
         logging.error(f"Ошибка состояния: {ve}")
     except AiogramError as e:
@@ -44,6 +48,7 @@ async def choose_start(
 async def choose_frame(
         call: CallbackQuery, callback_data: FrameCallback, user: TgUser, state: FSMContext
 ):
+
     ic(callback_data)
     frame = callback_data.frame
     lesson_num = callback_data.lesson_num
