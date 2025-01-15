@@ -12,8 +12,6 @@ from Web.Schooler.models import Person
 from tgbot.decorators.access_rights import role_required
 from tgbot.keyboards.inline import (
     choose_frame_kb,
-    second_frame_class_kb,
-    first_frame_class_kb,
     generate_inline_keyboard,
 )
 from tgbot.misc.callback import (
@@ -22,9 +20,8 @@ from tgbot.misc.callback import (
     LetterCallback,
     PersonCallback,
 )
-from tgbot.misc.states import Incident, IncidentLater
+from tgbot.misc.states import IncidentLater
 from tgbot.services.choose import (
-    choose_frame_state,
     choose_class_state,
     choose_letter_state,
 )
@@ -45,7 +42,7 @@ async def choose_start_incident(
         await state.set_state(IncidentLater.frame)
 
         await message.answer(
-            "Пожалуйста выберите корпус учащихся",
+            "Пожалуйста выберите корпус учащихся для отметки опоздавшего",
             reply_markup=choose_frame_kb(
                 type_report="later",
                 lesson_num=lesson_number,
@@ -80,7 +77,7 @@ async def choose_class(
     if class_num == 100:
         await state.set_state(IncidentLater.frame)
         await call.message.edit_text(
-            "Пожалуйста выберите корпус учащихся",
+            "Пожалуйста выберите корпус учащихся для отметки опоздавшего",
             reply_markup=choose_frame_kb(
                 type_report="later", lesson_num=callback_data.lesson_num
             ),

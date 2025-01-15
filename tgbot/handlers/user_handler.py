@@ -1,12 +1,10 @@
 import asyncio
 import logging
-from curses.ascii import isdigit
 
 from aiogram import Router, Bot, F
 from aiogram.exceptions import AiogramError
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, CallbackQuery
-from icecream import ic
 
 from Web.AdminPanel.models import TgUser
 
@@ -30,7 +28,7 @@ async def choose_start(
 
         sent_message = await bot.send_message(
             user_id,
-            "Пожалуйста выберите корпус учащихся",
+            "Пожалуйста выберите корпус учащихся для отметки количества отсутствующих",
             reply_markup=choose_frame_kb(type_report="count", lesson_num=lesson_number),
         )
 
@@ -73,7 +71,7 @@ async def choose_class(
     if class_num == 100:
         await state.set_state(SchoolerCounter.frame)
         await call.message.edit_text(
-            "Пожалуйста выберите корпус учащихся",
+            "Пожалуйста выберите корпус учащихся для отметки количества отсутствующих",
             reply_markup=choose_frame_kb(
                 type_report="count", lesson_num=data.get("lesson_num")
             ),
