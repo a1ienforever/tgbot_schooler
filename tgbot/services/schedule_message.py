@@ -1,6 +1,7 @@
 from aiogram import Bot, Dispatcher
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
+from django.db.models import Q
 
 from Web.AdminPanel.models import User
 
@@ -10,7 +11,7 @@ scheduler = AsyncIOScheduler()
 
 
 async def schedule_messages(bot: Bot, lesson_number: int, dp: Dispatcher):
-    users = User.objects.all().filter(role="teacher")
+    users = User.objects.all().filter(Q(role="teacher") | Q(role="deputy"))
     from tgbot.handlers.user_handler import choose_start
 
     for user in users:
