@@ -30,7 +30,7 @@ DEBUG = True
 ALLOWED_HOSTS = [
     "localhost",
     "127.0.0.1",
-    "147.45.237.65",
+    "212.193.24.170",
 ]
 
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
