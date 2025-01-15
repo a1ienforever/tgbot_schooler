@@ -100,15 +100,16 @@ async def choose_letter(
     class_letter = callback_data.letter
     data = await state.get_data()
     frame = data.get("frame")
-    ic()
+    ic(class_letter, frame)
+
     if class_letter == "back":
         await state.set_state(SchoolerCounter.class_num)
-        if frame == "4":
+        if frame == 4:
             await call.message.edit_text(
                 "Выберите класс учащихся",
                 reply_markup=second_frame_class_kb(callback_data.type_report, callback_data.lesson_num)
             )
-        if frame == "1":
+        if frame == 1:
             await call.message.edit_text(
                 "Выберите класс учащихся",
                 reply_markup=first_frame_class_kb(callback_data.type_report, callback_data.lesson_num)
