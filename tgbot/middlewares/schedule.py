@@ -6,7 +6,7 @@ from aiogram.types import Message
 
 
 def work_day() -> bool:
-    return datetime.now().weekday() in (0, 1, 2, 3, 4, 5, 6)
+    return datetime.now().weekday() in (0, 1, 2, 3, 4)
 
 
 class WorkDayMiddleware(BaseMiddleware):
