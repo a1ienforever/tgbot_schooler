@@ -13,13 +13,12 @@ from tgbot.keyboards.inline import (
     generate_npt_kb,
     choose_frame_kb,
 )
-from tgbot.misc.states import IncidentForm
 
 
 async def choose_frame_state(message, type_report, lesson_num):
     ic()
     await message.answer(
-        "Пожалуйста выберите корпус учащихся",
+        "Пожалуйста выберите корпус для отметки ученика без формы",
         reply_markup=choose_frame_kb(type_report, lesson_num=lesson_num),
     )
 
@@ -38,7 +37,6 @@ async def choose_class_state(type_report, lesson_num, frame, call):
 
 
 async def choose_letter_state(frame, class_num, lesson_num, type_report, call):
-
     if frame == 1:
         await call.message.edit_text(
             "Выберите букву класса",

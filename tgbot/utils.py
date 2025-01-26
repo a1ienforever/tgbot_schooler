@@ -1,9 +1,19 @@
+import asyncio
 import re
 
 from aiogram.fsm.context import FSMContext
 
 from Web.AdminPanel.models import TgUser, User
 from tgbot.services.db import get_incidents
+
+
+async def delete_message_later(bot, chat_id: int, message_id: int, delay: int):
+    """Удаляет сообщение через заданное время."""
+    await asyncio.sleep(delay)
+    try:
+        await bot.delete_message(chat_id=chat_id, message_id=message_id)
+    except Exception:
+        pass  # Игнорируем ошибки, если сообщение уже удалено или недоступно
 
 
 def get_name(input_str: str):

@@ -1,6 +1,7 @@
 services:
   db:
     image: postgres:17
+    container_name: school-db
     env_file: .env
     environment:
       POSTGRES_SERVER: $POSTGRES_SERVER
@@ -16,6 +17,7 @@ services:
       - app-network
 
   redis:
+    container_name: school-redis
     image: redis:7.0
     command:
       - redis-server
@@ -28,6 +30,7 @@ services:
 
   django:
     build: .
+    container_name: school-django
     command: >
       sh -c "python django_app.py makemigrations &&
       python django_app.py migrate &&
@@ -47,6 +50,7 @@ services:
       - app-network
 
   nginx:
+    container_name: school-nginx
     image: nginx:latest
     ports:
       - "80:80"
@@ -60,6 +64,7 @@ services:
 
   bot:
     build: .
+    container_name: school-bot
     command: python bot.py
     environment:
       DJANGO_SETTINGS_MODULE: Web.Web.settings
