@@ -11,8 +11,6 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     restart: on-failure
-    ports:
-      - "5432:5432"
     networks:
       - app-network
 
@@ -23,8 +21,6 @@ services:
       - redis-server
     env_file: .env
     restart: on-failure
-    ports:
-      - "6379:6379"
     networks:
       - app-network
 
@@ -37,7 +33,7 @@ services:
       python /app/django_app.py runserver 0.0.0.0:8000"
     environment:
       DJANGO_SETTINGS_MODULE: Web.Web.settings
-      BOT_TOKEN: "7433337561:AAH2FAOj2UEebd1zRUEzSKDYwUHHkC9qlJg"
+      BOT_TOKEN: $BOT_TOKEN
     ports:
       - "127.0.0.1:8000:8000"
     depends_on:
@@ -52,8 +48,6 @@ services:
   nginx:
     container_name: school-nginx
     image: nginx:latest
-    ports:
-      - "80:80"
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf
       - ./Web/static:/app/Web/static
@@ -68,7 +62,7 @@ services:
     command: python bot.py
     environment:
       DJANGO_SETTINGS_MODULE: Web.Web.settings
-      BOT_TOKEN: "7433337561:AAH2FAOj2UEebd1zRUEzSKDYwUHHkC9qlJg"
+      BOT_TOKEN: $BOT_TOKEN
     depends_on:
       - db
       - redis
