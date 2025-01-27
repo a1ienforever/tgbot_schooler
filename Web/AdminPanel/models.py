@@ -46,7 +46,7 @@ class User(models.Model):
         return f"{self.surname} {self.name} {self.patronymic}"
 
     class Meta:
-        verbose_name = "Школьный персона"
+        verbose_name = "Школьный персонал"
         verbose_name_plural = "Школьный персонал"
 
 

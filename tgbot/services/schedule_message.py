@@ -1,6 +1,7 @@
 from aiogram import Bot, Dispatcher
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
+from django.db.models import Q
 
 from Web.AdminPanel.models import User
 
@@ -10,7 +11,7 @@ scheduler = AsyncIOScheduler()
 
 
 async def schedule_messages(bot: Bot, lesson_number: int, dp: Dispatcher):
-    users = User.objects.all().filter(role="teacher")
+    users = User.objects.all().filter(Q(role="teacher") | Q(role="deputy"))
     from tgbot.handlers.user_handler import choose_start
 
     for user in users:
@@ -28,16 +29,15 @@ async def send_all_admin(bot: Bot, msg):
 
 
 async def start_scheduler(bot: Bot, dp: Dispatcher):
-    scheduler.add_job(schedule_messages, "cron", hour=23, minute=18, args=[bot, 1, dp])
-    scheduler.add_job(schedule_messages, "cron", hour=23, minute=19, args=[bot, 2, dp])
-    scheduler.add_job(schedule_messages, "cron", hour=10, minute=35, args=[bot, 3, dp])
+    scheduler.add_job(schedule_messages, "cron", hour=8, minute=30, args=[bot, 1, dp])
+    scheduler.add_job(schedule_messages, "cron", hour=9, minute=25, args=[bot, 2, dp])
+    scheduler.add_job(schedule_messages, "cron", hour=10, minute=30, args=[bot, 3, dp])
     scheduler.add_job(schedule_messages, "cron", hour=11, minute=30, args=[bot, 4, dp])
     scheduler.add_job(schedule_messages, "cron", hour=12, minute=30, args=[bot, 5, dp])
     scheduler.add_job(schedule_messages, "cron", hour=13, minute=35, args=[bot, 6, dp])
     scheduler.add_job(schedule_messages, "cron", hour=14, minute=30, args=[bot, 7, dp])
-    scheduler.add_job(schedule_messages, "cron", hour=23, minute=6, args=[bot, 8, dp])
-    scheduler.add_job(schedule_messages, "cron", hour=23, minute=7, args=[bot, 9, dp])
-    # scheduler.add_job(schedule_messages, "interval", seconds=3, args=[bot, 9, dp])
+    scheduler.add_job(schedule_messages, "cron", hour=15, minute=25, args=[bot, 8, dp])
+    scheduler.add_job(schedule_messages, "cron", hour=16, minute=20, args=[bot, 9, dp])
     scheduler.add_job(
         send_all_admin,
         CronTrigger(day_of_week="fri", hour=10, minute=0),
