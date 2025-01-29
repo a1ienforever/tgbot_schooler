@@ -13,6 +13,8 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 import os
 from pathlib import Path
 
+from unfold.contrib import import_export
+
 from tgbot.config import load_config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -58,6 +60,7 @@ INSTALLED_APPS = [
     "Web.AdminPanel",
     "Web.Record",
     "Web.Schooler",
+    'import_export',
 ]
 
 MIDDLEWARE = [
