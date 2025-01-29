@@ -36,7 +36,7 @@ def get_name(input_str: str):
 
 
 async def get_user_data(user: TgUser):
-    return User.objects.filter(tg_user__telegram_id=user.telegram_id).get()
+    return await User.objects.filter(tg_user__telegram_id=user.telegram_id).aget()
 
 
 async def get_state_data(state: FSMContext):
