@@ -52,7 +52,6 @@ async def choose_start_incident(
     try:
         if state:
             await state.set_state(IncidentForm.frame)
-        persons.clear()
         await choose_frame_state(message, type_report="form", lesson_num=lesson_number)
     except AiogramError as e:
         logging.info(f"{e}")
@@ -64,9 +63,7 @@ async def choose_frame(
     call: CallbackQuery, callback_data: FrameCallback, user: TgUser, state: FSMContext
 ):
     frame = callback_data.frame
-    ic()
-    ic(callback_data)
-
+    persons.clear()
     await state.update_data(frame=frame)
     await choose_class_state(
         type_report="form",
@@ -150,23 +147,22 @@ async def select_person(
 
     if person_id == -1:  # Если нажали кнопку "Готово"
         await process_selected_persons(persons, call)
-        persons.clear()
         return
 
     if person_id == -2:
         await state.set_state(IncidentForm.frame)
-        persons.clear()
         await call.message.edit_text(
             "Пожалуйста выберите корпус учащихся",
             reply_markup=choose_frame_kb(type_report="form", lesson_num=1),
         )
         return
 
-    if person_id not in persons:
+    if person_id in persons:
+        persons.remove(person_id)
+    else:
         persons.add(person_id)
 
     await call.message.edit_reply_markup(reply_markup=generate_inline_keyboard(persons=persons, state=await state.get_data(), type_report='form').as_markup())
-    await call.answer("Выбор обновлён")
 
 
 async def process_selected_persons(selected_persons, call):
