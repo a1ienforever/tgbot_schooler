@@ -30,6 +30,7 @@ from tgbot.services.choose import (
 )
 
 router = Router()
+persons = set()
 
 
 @router.message(Command("report"))
@@ -51,6 +52,7 @@ async def choose_start_incident(
     try:
         if state:
             await state.set_state(IncidentForm.frame)
+        persons.clear()
         await choose_frame_state(message, type_report="form", lesson_num=lesson_number)
     except AiogramError as e:
         logging.info(f"{e}")
@@ -96,7 +98,6 @@ async def choose_class(
             ),
         )
         return
-    ic()
     await state.update_data(class_num=class_num)
     await choose_letter_state(
         frame,
@@ -113,15 +114,13 @@ async def choose_class(
     LetterCallback.filter(F.type_report == "form"),
 )
 async def choose_letter(
-    call: CallbackQuery, callback_data: LetterCallback, state: FSMContext, user: TgUser
+        call: CallbackQuery, callback_data: LetterCallback, state: FSMContext, user: TgUser
 ):
     class_letter = callback_data.letter
     await state.update_data(letter=class_letter)
     data = await state.get_data()
-    ic(data)
     frame = data.get("frame")
-    ic()
-    ic(callback_data)
+
     if class_letter == "back":
         await choose_class_state(
             type_report="form",
@@ -131,11 +130,11 @@ async def choose_letter(
         )
         await state.set_state(IncidentForm.class_num)
         return
-    await state.update_data(letter=class_letter)
+
     await call.message.edit_text(
-        "Выберите имя ученика",
+        "Выберите учеников (нажимайте несколько раз для выбора, затем 'Готово')",
         reply_markup=generate_inline_keyboard(
-            type_report="form", state=data
+            type_report="form", state=data, persons=persons
         ).as_markup(),
     )
     await state.set_state(IncidentForm.person)
@@ -144,27 +143,43 @@ async def choose_letter(
 @router.callback_query(
     PersonCallback.filter(F.type_report == "form"),
 )
-async def late_record(
-    call: CallbackQuery, callback_data: PersonCallback, state: FSMContext, user: TgUser
+async def select_person(
+        call: CallbackQuery, callback_data: PersonCallback, state: FSMContext, user: TgUser
 ):
     person_id = callback_data.person_id
-    # data = await state.get_data()
-    if person_id == -1:
+
+    if person_id == -1:  # Если нажали кнопку "Готово"
+        await process_selected_persons(persons, call)
+        persons.clear()
+        return
+
+    if person_id == -2:
         await state.set_state(IncidentForm.frame)
+        persons.clear()
         await call.message.edit_text(
             "Пожалуйста выберите корпус учащихся",
             reply_markup=choose_frame_kb(type_report="form", lesson_num=1),
         )
         return
 
-    person = Person.objects.filter(id=person_id).get()
+    if person_id not in persons:
+        persons.add(person_id)
+
+    await call.message.edit_reply_markup(reply_markup=generate_inline_keyboard(persons=persons, state=await state.get_data(), type_report='form').as_markup())
+    await call.answer("Выбор обновлён")
+
+
+async def process_selected_persons(selected_persons, call):
+    text = "\n".join([await create_person(person_id) for person_id in selected_persons])
+    await call.message.edit_text(f"Запись создана:\n{text}")
+
+
+async def create_person(person_id):
+    person = await Person.objects.aget(id=person_id)
     text = f"{person.last_name} {person.first_name} {person.class_assigned.grade}{person.class_assigned.letter}"
 
     await IncidentRecord.objects.acreate(
         person_id=person, status=IncidentRecord.WITHOUT_UNIFORM
     )
-    await state.clear()
 
-    await call.message.edit_text(
-        f"Запись создана: \n" f"Без формы {text}",
-    )
+    return text
