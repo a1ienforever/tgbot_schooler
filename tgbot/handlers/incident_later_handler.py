@@ -118,7 +118,7 @@ async def choose_letter(
     await call.message.edit_text(
         "Выберите имя ученика",
         reply_markup=generate_inline_keyboard(
-            type_report="later", state=data
+            type_report="later", state=data, persons=set()
         ).as_markup(),
     )
     await state.set_state(IncidentLater.person)

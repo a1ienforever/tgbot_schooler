@@ -521,10 +521,10 @@ def accept_kb():
     return keyboard
 
 
-def generate_inline_keyboard(state: dict, type_report):
+def generate_inline_keyboard(state: dict, type_report, persons):
     builder = InlineKeyboardBuilder()
     ic(state)
-    persons = (
+    persons_obj = (
         Person.objects.select_related("class_assigned__building")
         .filter(
             class_assigned__grade=state["class_num"],
@@ -534,15 +534,22 @@ def generate_inline_keyboard(state: dict, type_report):
         .order_by("last_name")
     )
 
-    for person in persons:
+    for person in persons_obj:
         name = f"{person.last_name} {person.first_name}"
+        selected_marker = "✅ " if person.id in persons else ""
         builder.button(
-            text=name,
+            text=f"{selected_marker}{name}",
             callback_data=PersonCallback(type_report=type_report, person_id=person.id),
         )
+
+    builder.button(
+        text="Готово",
+        callback_data=PersonCallback(type_report=type_report, person_id=-1),
+    )
+
     builder.button(
         text="Назад",
-        callback_data=PersonCallback(type_report=type_report, person_id=-1),
+        callback_data=PersonCallback(type_report=type_report, person_id=-2),
     )
 
     builder.adjust(2)
