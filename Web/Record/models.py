@@ -12,6 +12,12 @@ class Record(models.Model):
     date = models.ForeignKey("RecordDate", on_delete=models.CASCADE)
     lesson_num = models.IntegerField(verbose_name="Номер урока")
 
+    def __str__(self):
+        return f'{self.class_num}{self.letter} - {self.count}'
+
+    class Meta:
+        verbose_name = 'Запись количества отсутствующих'
+        verbose_name_plural = 'Записи количества отсутствующих'
 
 class RecordDate(models.Model):
     date = models.DateField(auto_now_add=True, verbose_name="Дата создания")
@@ -31,3 +37,10 @@ class IncidentRecord(models.Model):
     )
     person_id = models.ForeignKey(Person, on_delete=models.CASCADE)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES)
+
+    def __str__(self):
+        return f'{self.person_id.last_name} {self.person_id.first_name} - {self.status}'
+
+    class Meta:
+        verbose_name = 'Запись о нарушение правил'
+        verbose_name_plural = 'Записи о нарушение правил'

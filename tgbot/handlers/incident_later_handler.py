@@ -133,7 +133,7 @@ async def late_record(
     person_id = callback_data.person_id
     data = await state.get_data()
 
-    if person_id == -1:
+    if person_id == -2:
         await state.set_state(IncidentLater.frame)
         await call.message.edit_text(
             "Пожалуйста выберите корпус учащихся",
