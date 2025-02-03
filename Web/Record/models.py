@@ -36,7 +36,7 @@ class IncidentRecord(models.Model):
         auto_now_add=True,
     )
     person_id = models.ForeignKey(Person, on_delete=models.CASCADE)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, verbose_name='Статус')
 
     def __str__(self):
         return f'{self.person_id.last_name} {self.person_id.first_name} - {self.status}'
