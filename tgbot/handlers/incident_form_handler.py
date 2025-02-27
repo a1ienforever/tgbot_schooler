@@ -41,100 +41,101 @@ async def start_report(message: Message, user: TgUser):
     )
 
 
-@router.message(F.text.upper().in_("БЕЗ ФОРМЫ"))
-@role_required(["director", "deputy"])
-async def choose_start_incident(
-    message: Message,
-    user: TgUser,
-    lesson_number: int = 1,
-    state: FSMContext = None,
-):
-    try:
-        if state:
-            await state.set_state(IncidentForm.frame)
-        await choose_frame_state(message, type_report="form", lesson_num=lesson_number)
-    except AiogramError as e:
-        logging.info(f"{e}")
-
-
-# сделал
-@router.callback_query(FrameCallback.filter(F.type_report == "form"))
-async def choose_frame(
-    call: CallbackQuery, callback_data: FrameCallback, user: TgUser, state: FSMContext
-):
-    frame = callback_data.frame
-    persons.clear()
-    await state.update_data(frame=frame)
-    await choose_class_state(
-        type_report="form",
-        lesson_num=callback_data.lesson_num,
-        frame=frame,
-        call=call,
-    )
-    await state.set_state(IncidentForm.class_num)
-
-
-# сделал
-@router.callback_query(
-    ClassCallback.filter(F.type_report == "form"),
-)
-async def choose_class(
-    call: CallbackQuery, callback_data: ClassCallback, user: TgUser, state: FSMContext
-):
-    data = await state.get_data()
-    frame = data.get("frame")
-    class_num = callback_data.class_num
-    ic()
-    ic(callback_data)
-    if class_num == 100:
-        await state.set_state(IncidentForm.frame)
-        await call.message.edit_text(
-            "Пожалуйста выберите корпус учащихся",
-            reply_markup=choose_frame_kb(
-                type_report="form", lesson_num=callback_data.lesson_num
-            ),
-        )
-        return
-    await state.update_data(class_num=class_num)
-    await choose_letter_state(
-        frame,
-        class_num,
-        lesson_num=callback_data.lesson_num,
-        type_report="form",
-        call=call,
-    )
-
-    await state.set_state(IncidentForm.letter)
-
-
-@router.callback_query(
-    LetterCallback.filter(F.type_report == "form"),
-)
-async def choose_letter(
-        call: CallbackQuery, callback_data: LetterCallback, state: FSMContext, user: TgUser
-):
-    class_letter = callback_data.letter
-    await state.update_data(letter=class_letter)
-    data = await state.get_data()
-    frame = data.get("frame")
-
-    if class_letter == "back":
-        await choose_class_state(
-            type_report="form",
-            lesson_num=callback_data.lesson_num,
-            frame=frame,
-            call=call,
-        )
-        await state.set_state(IncidentForm.class_num)
-        return
-
-    await call.message.edit_text(
-        "Выберите учеников (нажимайте несколько раз для выбора, затем 'Готово')",
-        reply_markup=generate_inline_keyboard(
-            type_report="form", state=data, persons=persons
-        ).as_markup(),
-    )
-    await state.set_state(IncidentForm.person)
+# @router.message(F.text.upper().in_("БЕЗ ФОРМЫ"))
+# @role_required(["director", "deputy"])
+# async def choose_start_incident(
+#     message: Message,
+#     user: TgUser,
+#     lesson_number: int = 1,
+#     state: FSMContext = None,
+# ):
+#     try:
+#         if state:
+#             await state.set_state(IncidentForm.frame)
+#         text = "Пожалуйста выберите корпус для отметки ученика без формы"
+#         await choose_frame_state(message, type_report="form", lesson_num=lesson_number, text=text)
+#     except AiogramError as e:
+#         logging.info(f"{e}")
+#
+#
+# # сделал
+# @router.callback_query(FrameCallback.filter(F.type_report == "form"))
+# async def choose_frame(
+#     call: CallbackQuery, callback_data: FrameCallback, user: TgUser, state: FSMContext
+# ):
+#     frame = callback_data.frame
+#     persons.clear()
+#     await state.update_data(frame=frame)
+#     await choose_class_state(
+#         type_report="form",
+#         lesson_num=callback_data.lesson_num,
+#         frame=frame,
+#         call=call,
+#     )
+#     await state.set_state(IncidentForm.class_num)
+#
+#
+# # сделал
+# @router.callback_query(
+#     ClassCallback.filter(F.type_report == "form"),
+# )
+# async def choose_class(
+#     call: CallbackQuery, callback_data: ClassCallback, user: TgUser, state: FSMContext
+# ):
+#     data = await state.get_data()
+#     frame = data.get("frame")
+#     class_num = callback_data.class_num
+#     ic()
+#     ic(callback_data)
+#     if class_num == 100:
+#         await state.set_state(IncidentForm.frame)
+#         await call.message.edit_text(
+#             "Пожалуйста выберите корпус учащихся",
+#             reply_markup=choose_frame_kb(
+#                 type_report="form", lesson_num=callback_data.lesson_num
+#             ),
+#         )
+#         return
+#     await state.update_data(class_num=class_num)
+#     await choose_letter_state(
+#         frame,
+#         class_num,
+#         lesson_num=callback_data.lesson_num,
+#         type_report="form",
+#         call=call,
+#     )
+#
+#     await state.set_state(IncidentForm.letter)
+#
+#
+# @router.callback_query(
+#     LetterCallback.filter(F.type_report == "form"),
+# )
+# async def choose_letter(
+#         call: CallbackQuery, callback_data: LetterCallback, state: FSMContext, user: TgUser
+# ):
+#     class_letter = callback_data.letter
+#     await state.update_data(letter=class_letter)
+#     data = await state.get_data()
+#     frame = data.get("frame")
+#
+#     if class_letter == "back":
+#         await choose_class_state(
+#             type_report="form",
+#             lesson_num=callback_data.lesson_num,
+#             frame=frame,
+#             call=call,
+#         )
+#         await state.set_state(IncidentForm.class_num)
+#         return
+#
+#     await call.message.edit_text(
+#         "Выберите учеников (нажимайте несколько раз для выбора, затем 'Готово')",
+#         reply_markup=generate_inline_keyboard(
+#             type_report="form", state=data, persons=persons
+#         ).as_markup(),
+#     )
+#     await state.set_state(IncidentForm.person)
 
 
 @router.callback_query(
