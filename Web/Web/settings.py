@@ -57,10 +57,9 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "Web.AdminPanel",
     "Web.Record",
+    "Web.AdminPanel",
     "Web.Schooler",
-    'import_export',
 ]
 
 MIDDLEWARE = [
