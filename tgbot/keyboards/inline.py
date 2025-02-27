@@ -164,7 +164,7 @@ def generate_eab_kb(type_report, lesson_num):
                 InlineKeyboardButton(
                     text="Э",
                     callback_data=LetterCallback(
-                        type_report=type_report, lesson_num=lesson_num, letter="З"
+                        type_report=type_report, lesson_num=lesson_num, letter="Э"
                     ).pack(),
                 ),
                 InlineKeyboardButton(
@@ -230,7 +230,7 @@ def generate_ea_kb(type_report, lesson_num):
                 InlineKeyboardButton(
                     text="Э",
                     callback_data=LetterCallback(
-                        type_report=type_report, lesson_num=lesson_num, letter="З"
+                        type_report=type_report, lesson_num=lesson_num, letter="Э"
                     ).pack(),
                 ),
             ],
@@ -308,7 +308,7 @@ def generate_gnste_kb(type_report, lesson_num):
                 InlineKeyboardButton(
                     text="Э",
                     callback_data=LetterCallback(
-                        type_report=type_report, lesson_num=lesson_num, letter="З"
+                        type_report=type_report, lesson_num=lesson_num, letter="Э"
                     ).pack(),
                 ),
             ],
@@ -350,7 +350,7 @@ def generate_gnte_kb(type_report, lesson_num):
                 InlineKeyboardButton(
                     text="Э",
                     callback_data=LetterCallback(
-                        type_report=type_report, lesson_num=lesson_num, letter="З"
+                        type_report=type_report, lesson_num=lesson_num, letter="Э"
                     ).pack(),
                 ),
             ],
@@ -541,11 +541,11 @@ def generate_inline_keyboard(state: dict, type_report, persons):
             text=f"{selected_marker}{name}",
             callback_data=PersonCallback(type_report=type_report, person_id=person.id),
         )
-
-    builder.button(
-        text="Готово",
-        callback_data=PersonCallback(type_report=type_report, person_id=-1),
-    )
+    if type_report == 'form':
+        builder.button(
+            text="Готово",
+            callback_data=PersonCallback(type_report=type_report, person_id=-1),
+        )
 
     builder.button(
         text="Назад",
