@@ -41,21 +41,21 @@ async def start_report(message: Message, user: TgUser):
     )
 
 
-# @router.message(F.text.upper().in_("БЕЗ ФОРМЫ"))
-# @role_required(["director", "deputy"])
-# async def choose_start_incident(
-#     message: Message,
-#     user: TgUser,
-#     lesson_number: int = 1,
-#     state: FSMContext = None,
-# ):
-#     try:
-#         if state:
-#             await state.set_state(IncidentForm.frame)
-#         text = "Пожалуйста выберите корпус для отметки ученика без формы"
-#         await choose_frame_state(message, type_report="form", lesson_num=lesson_number, text=text)
-#     except AiogramError as e:
-#         logging.info(f"{e}")
+@router.message(F.text.upper().in_("БЕЗ ФОРМЫ"))
+@role_required(["director", "deputy"])
+async def choose_start_incident(
+    message: Message,
+    user: TgUser,
+    lesson_number: int = 1,
+    state: FSMContext = None,
+):
+    try:
+        if state:
+            await state.set_state(IncidentForm.frame)
+        text = "Пожалуйста выберите корпус для отметки ученика без формы"
+        await choose_frame_state(message, type_report="form", lesson_num=lesson_number, text=text)
+    except AiogramError as e:
+        logging.info(f"{e}")
 #
 #
 # # сделал

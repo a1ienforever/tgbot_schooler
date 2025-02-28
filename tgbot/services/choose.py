@@ -18,7 +18,7 @@ from tgbot.keyboards.inline import (
 async def choose_frame_state(message, text, type_report, lesson_num):
     ic()
     await message.answer(
-        text,
+        text=text,
         reply_markup=choose_frame_kb(type_report, lesson_num=lesson_num),
     )
 

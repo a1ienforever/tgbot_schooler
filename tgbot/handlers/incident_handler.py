@@ -2,34 +2,41 @@ import logging
 
 from aiogram import Router, F
 from aiogram.exceptions import AiogramError
+from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, CallbackQuery
 from icecream import ic
 
 from Web.AdminPanel.models import TgUser
-from Web.Record.models import IncidentRecord
-from Web.Schooler.models import Person
+
 from tgbot.decorators.access_rights import role_required
 from tgbot.keyboards.inline import (
     choose_frame_kb,
     generate_inline_keyboard,
 )
+from tgbot.keyboards.reply import menu_kb
 from tgbot.misc.callback import (
     FrameCallback,
     ClassCallback,
     LetterCallback,
-    PersonCallback,
 )
 from tgbot.misc.states import IncidentLater, IncidentForm
 from tgbot.services.choose import (
     choose_class_state,
-    choose_letter_state,
+    choose_letter_state, choose_frame_state,
 )
 
 router = Router()
 persons = set()
 
-@router.message(F.text.upper())
+@router.message(Command("report"))
+@role_required(["director", "deputy"])
+async def start_report(message: Message, user: TgUser):
+    await message.answer(
+        "Выберите нужный вид отчета в клавиатуре снизу", reply_markup= menu_kb()
+    )
+
+@router.message(F.text.upper().in_(['БЕЗ ФОРМЫ', 'ОПОЗДАВШИЙ']))
 @role_required(["director", "deputy"])
 async def choose_start_incident(
     message: Message,
@@ -38,27 +45,21 @@ async def choose_start_incident(
     state: FSMContext = None,
 ):
     try:
-        type_report = str
-        text = str
-
-        if F.text.upper() == 'ОПОЗДАВШИЙ':
+        message_type = message.text.upper()
+        text = None
+        if message_type == 'ОПОЗДАВШИЙ':
             await state.set_state(IncidentLater.frame)
             type_report = 'later'
             text = "Пожалуйста выберите корпус учащихся для отметки опоздавшего"
-        elif F.text.upper() == 'БЕЗ ФОРМЫ':
+        elif message_type == 'БЕЗ ФОРМЫ':
             await state.set_state(IncidentForm.frame)
             text = "Пожалуйста выберите корпус для отметки ученика без формы"
             type_report = 'form'
         else:
             return
 
-        await message.answer(
-            text,
-            reply_markup=choose_frame_kb(
-                type_report=type_report,
-                lesson_num=lesson_number,
-            ),
-        )
+        await choose_frame_state(message=message, type_report=type_report, lesson_num=lesson_number, text=text)
+
     except AiogramError as e:
         logging.info(f"{e}")
 
