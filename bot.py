@@ -8,7 +8,6 @@ from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.fsm.storage.redis import RedisStorage, DefaultKeyBuilder
 
 from tgbot.config import load_config, Config
-from tgbot.middlewares.config import ConfigMiddleware
 from tgbot.services import broadcaster
 
 
@@ -21,6 +20,7 @@ async def on_startup(bot: Bot, admin_ids: list[int], dp):
 
 
 def register_global_middlewares(dp: Dispatcher, config: Config):
+    from tgbot.middlewares.config import ConfigMiddleware
     from tgbot.middlewares.database import DatabaseMiddleware
     from tgbot.middlewares.schedule import WorkDayMiddleware
 

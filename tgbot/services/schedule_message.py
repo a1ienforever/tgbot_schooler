@@ -4,6 +4,7 @@ from apscheduler.triggers.cron import CronTrigger
 from django.db.models import Q
 
 from Web.AdminPanel.models import User
+from tgbot.services.broadcaster import broadcast
 
 from tgbot.utils import get_incidents_message
 
@@ -24,8 +25,7 @@ async def schedule_messages(bot: Bot, lesson_number: int, dp: Dispatcher):
 
 async def send_all_admin(bot: Bot, msg):
     admins = await User.objects.filter(is_superuser=True, tg_user__is_admin=True)
-    for admin in admins:
-        await bot.send_message(admin.telegram_id, msg)
+    await broadcast(bot, msg, admins)
 
 
 async def start_scheduler(bot: Bot, dp: Dispatcher):
