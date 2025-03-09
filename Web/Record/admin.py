@@ -7,7 +7,7 @@ from Web.Record.models import Record, IncidentRecord
 # # Register your models here.
 @admin.register(Record)
 class RecordAdmin(admin.ModelAdmin):
-    list_filter = ('frame', 'class_num', 'letter', 'count', 'date', 'lesson_num')
+    list_filter = ('frame', 'class_num', 'letter', 'lesson_num')
 
 
 @admin.register(IncidentRecord)

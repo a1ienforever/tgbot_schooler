@@ -2,8 +2,11 @@ from aiogram import Bot, Dispatcher
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 from django.db.models import Q
+from icecream import ic
 
 from Web.AdminPanel.models import User
+from tgbot.middlewares.schedule import work_day
+from tgbot.services.broadcaster import broadcast
 
 from tgbot.utils import get_incidents_message
 
@@ -11,6 +14,8 @@ scheduler = AsyncIOScheduler()
 
 
 async def schedule_messages(bot: Bot, lesson_number: int, dp: Dispatcher):
+    if not work_day():
+        return
     users = User.objects.all().filter(Q(role="teacher") | Q(role="deputy"))
     from tgbot.handlers.user_handler import choose_start
 
@@ -23,9 +28,8 @@ async def schedule_messages(bot: Bot, lesson_number: int, dp: Dispatcher):
 
 
 async def send_all_admin(bot: Bot, msg):
-    admins = await User.objects.filter(is_superuser=True, tg_user__is_admin=True)
-    for admin in admins:
-        await bot.send_message(admin.telegram_id, msg)
+    admins = list(User.objects.filter(is_superuser=True, tg_user__is_admin=True).values_list('tg_user__telegram_id', flat=True))
+    await broadcast(bot=bot, text=msg, users=admins)
 
 
 async def start_scheduler(bot: Bot, dp: Dispatcher):

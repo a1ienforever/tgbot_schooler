@@ -52,7 +52,8 @@ async def choose_start_incident(
     try:
         if state:
             await state.set_state(IncidentForm.frame)
-        await choose_frame_state(message, type_report="form", lesson_num=lesson_number)
+        text = "Пожалуйста выберите корпус для отметки ученика без формы"
+        await choose_frame_state(message, type_report="form", lesson_num=lesson_number, text=text)
     except AiogramError as e:
         logging.info(f"{e}")
 

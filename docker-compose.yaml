@@ -69,12 +69,11 @@ services:
     depends_on:
       - db
       - redis
-    restart: always
+    restart: unless-stopped
     volumes:
       - .:/app
     networks:
       - app-network
-
 
 volumes:
   postgres_data:

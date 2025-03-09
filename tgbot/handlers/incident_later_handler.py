@@ -21,6 +21,7 @@ from tgbot.misc.callback import (
     PersonCallback,
 )
 from tgbot.misc.states import IncidentLater
+from tgbot.services.broadcaster import send_message
 from tgbot.services.choose import (
     choose_class_state,
     choose_letter_state,
@@ -41,7 +42,9 @@ async def choose_start_incident(
 
         await state.set_state(IncidentLater.frame)
 
-        await message.answer(
+        await send_message(
+            message.bot,
+            user.telegram_id,
             "Пожалуйста выберите корпус учащихся для отметки опоздавшего",
             reply_markup=choose_frame_kb(
                 type_report="later",

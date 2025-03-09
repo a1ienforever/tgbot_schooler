@@ -17,4 +17,5 @@ class WorkDayMiddleware(BaseMiddleware):
         data: Dict[str, Any],
     ) -> Any:
         if work_day():
-            return await handler(event, data)
+            result = await handler(event, data)
+            return result
