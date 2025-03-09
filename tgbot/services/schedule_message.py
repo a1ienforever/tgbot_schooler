@@ -2,6 +2,7 @@ from aiogram import Bot, Dispatcher
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 from django.db.models import Q
+from icecream import ic
 
 from Web.AdminPanel.models import User
 from tgbot.middlewares.schedule import work_day
@@ -40,7 +41,7 @@ async def start_scheduler(bot: Bot, dp: Dispatcher):
     scheduler.add_job(schedule_messages, "cron", hour=13, minute=35, args=[bot, 6, dp])
     scheduler.add_job(schedule_messages, "cron", hour=14, minute=30, args=[bot, 7, dp])
     scheduler.add_job(schedule_messages, "cron", hour=15, minute=25, args=[bot, 8, dp])
-    scheduler.add_job(schedule_messages, "cron", hour=16, minute=45, args=[bot, 9, dp])
+    scheduler.add_job(schedule_messages, "cron", hour=16, minute=20, args=[bot, 9, dp])
     scheduler.add_job(
         send_all_admin,
         CronTrigger(day_of_week="fri", hour=10, minute=0),
