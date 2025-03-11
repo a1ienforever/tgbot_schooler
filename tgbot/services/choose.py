@@ -16,7 +16,6 @@ from tgbot.keyboards.inline import (
 
 
 async def choose_frame_state(message, text, type_report, lesson_num):
-    ic()
     await message.answer(
         text=text,
         reply_markup=choose_frame_kb(type_report, lesson_num=lesson_num),
@@ -26,12 +25,12 @@ async def choose_frame_state(message, text, type_report, lesson_num):
 async def choose_class_state(type_report, lesson_num, frame, call):
     if frame == 1:
         await call.message.edit_text(
-            "Выберите класс учащихся",
+            text="Выберите класс учащихся",
             reply_markup=first_frame_class_kb(type_report, lesson_num),
         )
     if frame == 4:
         await call.message.edit_text(
-            "Выберите класс учащихся",
+            text="Выберите класс учащихся",
             reply_markup=second_frame_class_kb(type_report, lesson_num),
         )
 

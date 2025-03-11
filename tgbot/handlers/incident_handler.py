@@ -55,18 +55,15 @@ async def choose_start_incident(
             await state.set_state(IncidentForm.frame)
             text = "Пожалуйста выберите корпус для отметки ученика без формы"
             type_report = 'form'
-        else:
-            return
-
         await choose_frame_state(message=message, type_report=type_report, lesson_num=lesson_number, text=text)
-
     except AiogramError as e:
         logging.info(f"{e}")
 
-@router.callback_query(FrameCallback)
+@router.callback_query(FrameCallback.filter(F.type_report.in_(['form', 'later'])))
 async def choose_frame(
     call: CallbackQuery, callback_data: FrameCallback, user: TgUser, state: FSMContext
 ):
+
     frame = callback_data.frame
     if callback_data.type_report == 'form':
         persons.clear()
@@ -80,15 +77,14 @@ async def choose_frame(
     await choose_class_state(type_report=callback_data.type_report, frame=frame, call=call, lesson_num=1)
 
 
-@router.callback_query(ClassCallback)
+@router.callback_query( ClassCallback.filter(F.type_report.in_(['form', 'later'])))
 async def choose_class(
     call: CallbackQuery, callback_data: ClassCallback, user: TgUser, state: FSMContext
 ):
     data = await state.get_data()
     frame = data.get("frame")
     class_num = callback_data.class_num
-    ic()
-    ic(call.data)
+
     if class_num == 100:
         text = str
         if callback_data.type_report == 'form':
@@ -120,7 +116,8 @@ async def choose_class(
     elif callback_data.type_report == 'later':
         await state.set_state(IncidentLater.letter)
 
-@router.callback_query(LetterCallback)
+
+@router.callback_query(LetterCallback.filter(F.type_report.in_(['form', 'later'])))
 async def choose_letter(
         call: CallbackQuery, callback_data: LetterCallback, state: FSMContext, user: TgUser
 ):

@@ -523,7 +523,7 @@ def accept_kb():
 
 def generate_inline_keyboard(state: dict, type_report, persons):
     builder = InlineKeyboardBuilder()
-    ic(state)
+
     persons_obj = (
         Person.objects.select_related("class_assigned__building")
         .filter(

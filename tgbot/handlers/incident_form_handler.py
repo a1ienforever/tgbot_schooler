@@ -59,13 +59,15 @@ async def choose_start_incident(
 
 
 # сделал
-@router.callback_query(FrameCallback.filter(F.type_report == "form"))
+@router.callback_query()
 async def choose_frame(
     call: CallbackQuery, callback_data: FrameCallback, user: TgUser, state: FSMContext
 ):
+    ic()
     frame = callback_data.frame
     persons.clear()
     await state.update_data(frame=frame)
+    ic(callback_data.lesson_num, frame, call)
     await choose_class_state(
         type_report="form",
         lesson_num=callback_data.lesson_num,

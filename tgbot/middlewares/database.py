@@ -23,5 +23,5 @@ class DatabaseMiddleware(BaseMiddleware):
         )
 
         data["user"] = user
-        result = await handler(event, data)
-        return result
+        return await handler(event, data)
+
