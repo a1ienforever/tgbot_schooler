@@ -27,10 +27,10 @@ def register_global_middlewares(dp: Dispatcher, config: Config):
     middleware_types = [
         ConfigMiddleware(config),
         DatabaseMiddleware(),
-        # WorkDayMiddleware(),
+        WorkDayMiddleware(),
     ]
     for middleware_type in middleware_types:
-        dp.message.outer_middleware(middleware_type)
+        dp.message.middleware(middleware_type)
         dp.callback_query.outer_middleware(middleware_type)
 
 

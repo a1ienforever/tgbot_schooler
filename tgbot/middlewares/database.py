@@ -7,8 +7,6 @@ from Web.AdminPanel.models import TgUser
 
 
 class DatabaseMiddleware(BaseMiddleware):
-    def __init__(self) -> None:
-        pass
 
     async def __call__(
         self,
@@ -24,4 +22,3 @@ class DatabaseMiddleware(BaseMiddleware):
 
         data["user"] = user
         return await handler(event, data)
-

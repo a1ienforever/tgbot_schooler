@@ -1,3 +1,4 @@
+from aiogram.types import Message
 from icecream import ic
 
 from tgbot.keyboards.inline import (
@@ -15,7 +16,7 @@ from tgbot.keyboards.inline import (
 )
 
 
-async def choose_frame_state(message, text, type_report, lesson_num):
+async def choose_frame_state(message: Message, text, type_report, lesson_num):
     await message.answer(
         text=text,
         reply_markup=choose_frame_kb(type_report, lesson_num=lesson_num),

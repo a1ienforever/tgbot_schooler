@@ -7,6 +7,7 @@ def menu_kb():
         keyboard=[
             [KeyboardButton(text="Опоздавший")],
             [KeyboardButton(text="Без формы")],
+            [KeyboardButton(text="Сигнал")],
         ],
         resize_keyboard=True,
         input_field_placeholder="Воспользуйтесь меню:"

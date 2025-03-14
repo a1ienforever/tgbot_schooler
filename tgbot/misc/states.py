@@ -29,3 +29,6 @@ class IncidentLater(Incident):
 
 class IncidentForm(Incident):
     person = State()
+
+class IncidentSignal(Incident):
+    person = State()
