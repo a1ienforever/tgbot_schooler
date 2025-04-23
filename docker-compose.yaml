@@ -11,6 +11,8 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     restart: on-failure
+    ports:
+    - "5432:5432"
     networks:
       - app-network
 
