@@ -8,7 +8,7 @@ from aiogram.types import Message, CallbackQuery
 from icecream import ic
 
 from Web.AdminPanel.models import TgUser
-from Web.Record.models import IncidentRecord
+from Web.Record.models import IncidentRecord, Signal
 from Web.Schooler.models import Person
 
 from tgbot.decorators.access_rights import role_required
@@ -203,22 +203,28 @@ async def late_record(
     await process_selected_persons([person_id], call, callback_data.type_report)
 
 @router.callback_query(
-    PersonCallback.filter(F.type_report.in_(['form'])),
+    PersonCallback.filter(F.type_report.in_(['form', 'signal'])),
 )
-async def without_form_record(
+async def create_record(
         call: CallbackQuery, callback_data: PersonCallback, state: FSMContext, user: TgUser
 ):
     person_id = callback_data.person_id
-    if person_id == -1:  # Если нажали кнопку 'Готово'
-        await process_selected_persons(persons, call, callback_data.type_report)
-        persons.clear()
-        await state.clear()
-        return
+    if person_id == -1 and len(persons) != 0:
+        if callback_data.type_report == 'form':
+            # Если нажали кнопку 'Готово'
+            await process_selected_persons(persons, call, callback_data.type_report)
+            persons.clear()
+            await state.clear()
+            return
+        elif callback_data.type_report == 'signal':
+            await state.set_state(IncidentSignal.msg)
+            await call.message.edit_text('Введите сообщение сигнала:')
+            return
     if person_id == -2:
         await state.set_state(IncidentForm.frame)
         await call.message.edit_text(
             'Пожалуйста выберите корпус учащихся',
-            reply_markup=choose_frame_kb(type_report='form', lesson_num=1),
+            reply_markup=choose_frame_kb(type_report=callback_data.type_report, lesson_num=1),
         )
         return
 
@@ -226,10 +232,10 @@ async def without_form_record(
         persons.remove(person_id)
     else:
         persons.add(person_id)
+
     await call.message.edit_reply_markup(
         reply_markup=generate_inline_keyboard(persons=persons, state=await state.get_data(),
-                                              type_report='form').as_markup())
-
+                                                  type_report=callback_data.type_report).as_markup())
 
 
 async def process_selected_persons(selected_persons, call, type_report):
@@ -248,9 +254,19 @@ async def create_person(person_id, type_report):
         await IncidentRecord.objects.acreate(
             person_id=person, status=IncidentRecord.LATE
         )
-    elif type_report == 'signal':
-        pass
 
     return text
 
+@router.message(IncidentSignal.msg)
+async def enter_msg(message: Message, state: FSMContext, user: TgUser):
+    signal = await Signal.objects.acreate(msg=message.text)
+    ic(signal)
+    text = 'Запись создана:\n'
+    for person_id in persons:
+        person = await Person.objects.aget(id=person_id)
+        text += f'{person.last_name} {person.first_name} {person.class_assigned.grade}{person.class_assigned.letter}\n'
 
+        rec = await IncidentRecord.objects.acreate(person_id=person, status=IncidentRecord.SIGNAL, signal=signal)
+        ic(rec)
+    text += f'\nСообщение: {message.text}'
+    await message.answer(text)

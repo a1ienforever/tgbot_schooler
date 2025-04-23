@@ -32,3 +32,4 @@ class IncidentForm(Incident):
 
 class IncidentSignal(Incident):
     person = State()
+    msg = State()

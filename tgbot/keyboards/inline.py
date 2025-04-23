@@ -541,7 +541,7 @@ def generate_inline_keyboard(state: dict, type_report, persons):
             text=f"{selected_marker}{name}",
             callback_data=PersonCallback(type_report=type_report, person_id=person.id),
         )
-    if type_report == 'form':
+    if type_report in ['form', 'signal']:
         builder.button(
             text="Готово",
             callback_data=PersonCallback(type_report=type_report, person_id=-1),

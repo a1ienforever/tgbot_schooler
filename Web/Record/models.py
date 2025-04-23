@@ -20,23 +20,33 @@ class Record(models.Model):
         verbose_name_plural = 'Записи количества отсутствующих'
 
 class RecordDate(models.Model):
-    date = models.DateField(auto_now_add=True, verbose_name="Дата создания")
+    date = models.DateField(auto_now_add=True, verbose_name='Дата создания')
 
+
+class Signal(models.Model):
+    msg = models.CharField(max_length=500)
+
+    def __str__(self):
+        return self.msg
 
 class IncidentRecord(models.Model):
-    WITHOUT_UNIFORM = "Без формы"
-    LATE = "Опоздал"
+    WITHOUT_UNIFORM = 'Без формы'
+    LATE = 'Опоздал'
+    SIGNAL = 'Сигнал'
 
     STATUS_CHOICES = [
-        (WITHOUT_UNIFORM, "Без формы"),
-        (LATE, "Опоздал"),
+        (WITHOUT_UNIFORM, 'Без формы'),
+        (LATE, 'Опоздал'),
+        (SIGNAL, 'Сигнал')
     ]
 
     date = models.DateField(
         auto_now_add=True,
     )
-    person_id = models.ForeignKey(Person, on_delete=models.CASCADE)
+    person_id = models.ForeignKey(Person, on_delete=models.CASCADE, verbose_name='Учащийся')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, verbose_name='Статус')
+    signal = models.ForeignKey(Signal, on_delete=models.CASCADE, blank=True, null=True, verbose_name='Сигнал')
+
 
     def __str__(self):
         return f'{self.person_id.last_name} {self.person_id.first_name} - {self.status}'
@@ -44,3 +54,5 @@ class IncidentRecord(models.Model):
     class Meta:
         verbose_name = 'Запись о нарушение правил'
         verbose_name_plural = 'Записи о нарушение правил'
+
+
