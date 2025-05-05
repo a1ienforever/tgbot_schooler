@@ -42,11 +42,11 @@ async def start_scheduler(bot: Bot, dp: Dispatcher):
     scheduler.add_job(schedule_messages, "cron", hour=14, minute=30, args=[bot, 7, dp])
     scheduler.add_job(schedule_messages, "cron", hour=15, minute=25, args=[bot, 8, dp])
     scheduler.add_job(schedule_messages, "cron", hour=21, minute=3, args=[bot, 9, dp])
-    scheduler.add_job(
-        send_all_admin,
-        CronTrigger(day_of_week="fri", hour=10, minute=0),
-        args=[bot, await get_incidents_message()],
-    )
+    # scheduler.add_job(
+    #     send_all_admin,
+    #     CronTrigger(day_of_week="fri", hour=10, minute=0),
+    #     args=[bot, await get_incidents_message()],
+    # )
 
     scheduler.start()
 

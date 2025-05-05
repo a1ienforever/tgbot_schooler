@@ -5,6 +5,7 @@ from aiogram import Router, F, Bot
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
+from icecream import ic
 from tqdm import tqdm
 
 from Web.AdminPanel.models import TgUser, User
@@ -19,7 +20,7 @@ from tgbot.services.db import (
     get_admins,
 )
 from tgbot.services.schedule_message import pause_scheduler, resume_scheduler
-from tgbot.utils import split_full_name, get_incidents_message
+from tgbot.utils import split_full_name, get_incidents_message, STATUS_INCIDENTS
 
 router = Router()
 
@@ -139,10 +140,10 @@ async def test(message: Message, user: TgUser):
     await message.answer(f'Импорт завершён. Всего записей: {total_rows}')
 
 
-@router.message(Command('incidents'))
+@router.message(Command(commands=['form', 'late', 'signal']))
 @role_required(['director', 'deputy'])
 async def incident_report(message: Message, user: TgUser):
-    text, text1 = await get_incidents_message()
-
-    await message.answer(text)
-    await message.answer(text1)
+    status = STATUS_INCIDENTS.get(message.text[1:])
+    msg = await get_incidents_message(status)
+    await message.answer(msg)
+    # await message.answer(text1)

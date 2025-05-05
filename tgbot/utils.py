@@ -1,10 +1,23 @@
 import asyncio
 import re
+from collections import defaultdict
 
 from aiogram.fsm.context import FSMContext
+from icecream import ic
 
 from Web.AdminPanel.models import TgUser, User
+from Web.Record.models import IncidentRecord
 from tgbot.services.db import get_incidents
+
+WITHOUT_FORM = 'form'
+SIGNAL = 'signal'
+LATE = 'late'
+
+STATUS_INCIDENTS = {
+    WITHOUT_FORM: IncidentRecord.WITHOUT_UNIFORM,
+    SIGNAL: IncidentRecord.SIGNAL,
+    LATE: IncidentRecord.LATE
+}
 
 
 async def delete_message_later(bot, chat_id: int, message_id: int, delay: int):
@@ -73,27 +86,30 @@ def split_full_name(full_name):
     return last_name, first_name, middle_name
 
 
-async def get_incidents_message():
-    lates, uniforms = await get_incidents()
 
-    late = "Отчет за последние 7 дней\n" "Опоздавшие:\n"
+async def get_incidents_message(status):
+    records = await get_incidents(status)
 
-    for person in lates:
+    msg = "Отчет за последние 7 дней\n" f"{status}:\n"
 
-        text = (
-            f"{person.person_id.last_name} "
-            f"{person.person_id.first_name} "
-            f"{person.person_id.class_assigned.__str__()}\n"
-        )
-        late += text
+    # Группируем по signal.msg
+    grouped = defaultdict(list)
+    for record in records:
+        key = record.signal.msg if status == IncidentRecord.SIGNAL else "default"
+        grouped[key].append(record)
 
-    uniform = "Без формы:\n"
-    for person in uniforms:
-        text = (
-            f"{person.person_id.last_name} "
-            f"{person.person_id.first_name} "
-            f"{person.person_id.class_assigned.__str__()}\n"
-        )
-        uniform += text
+    for signal_msg, group in grouped.items():
+        for person in group:
+            msg += (
+                f"{person.person_id.last_name} "
+                f"{person.person_id.first_name} "
+                f"{person.person_id.class_assigned}\n"
+            )
 
-    return late, uniform
+        if status == IncidentRecord.SIGNAL and signal_msg:
+            msg += f"{signal_msg}\n"
+
+        msg += "\n"  # разделение между группами
+
+    return msg
+

@@ -2,7 +2,7 @@ import logging
 
 from aiogram import Router, F
 from aiogram.exceptions import AiogramError
-from aiogram.filters import Command
+from aiogram.filters import Command, StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, CallbackQuery
 from icecream import ic
@@ -257,7 +257,7 @@ async def create_person(person_id, type_report):
 
     return text
 
-@router.message(IncidentSignal.msg)
+@router.message(StateFilter(IncidentSignal.msg))
 async def enter_msg(message: Message, state: FSMContext, user: TgUser):
     signal = await Signal.objects.acreate(msg=message.text)
     ic(signal)
@@ -269,4 +269,5 @@ async def enter_msg(message: Message, state: FSMContext, user: TgUser):
         rec = await IncidentRecord.objects.acreate(person_id=person, status=IncidentRecord.SIGNAL, signal=signal)
         ic(rec)
     text += f'\nСообщение: {message.text}'
+    await state.clear()
     await message.answer(text)
