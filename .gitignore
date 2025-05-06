@@ -6,6 +6,13 @@ __pycache__/
 
 *.mo
 
+# Django migrations
+**/migrations/*.py
+!**/migrations/__init__.py
+
+# static files
+/static/
+
 db.sqlite3/
 .env/
 build/
